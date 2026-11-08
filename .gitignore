@@ -1,0 +1,9 @@
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+.DS_Store
+# wird beim Build aus assets-src erzeugt
+public/img/
+src/lib/images.generated.ts
