@@ -9,13 +9,15 @@ import {
 import { useReduceMotion } from "@/lib/useReduceMotion";
 import { useRef, type ReactNode, type ElementType } from "react";
 
-const EASE = [0.16, 1, 0.3, 1] as const;
+// Kurven aus der Motion-Sprache (siehe globals.css): --ease-out und --ease-in-out
+export const EASE = [0.23, 1, 0.32, 1] as const;
+export const EASE_IN_OUT = [0.77, 0, 0.175, 1] as const;
 
 /** Sanftes Einblenden beim Scrollen. */
 export function Reveal({
   children,
   delay = 0,
-  y = 28,
+  y = 16,
   className,
   as = "div",
 }: {
@@ -34,7 +36,7 @@ export function Reveal({
       initial={reduce ? false : { opacity: 0, y }}
       {...(reduce ? { animate: { opacity: 1, y: 0 } } : { whileInView: { opacity: 1, y: 0 } })}
       viewport={{ once: true, margin: "0px 0px -12% 0px" }}
-      transition={reduce ? { duration: 0 } : { duration: 1.1, ease: EASE, delay }}
+      transition={reduce ? { duration: 0 } : { duration: 0.6, ease: EASE, delay }}
     >
       {children}
     </M>
@@ -64,7 +66,7 @@ export function SplitHeading({
       {lines.map((line, li) => (
         <span key={li} className="block">
           {line.split(" ").map((word, wi) => {
-            const d = delay + i++ * 0.06;
+            const d = delay + i++ * 0.05;
             const italic = italicLast && li === lines.length - 1;
             return (
               <span key={wi} className="inline-block overflow-hidden pb-[0.12em] align-bottom -mb-[0.12em]">
@@ -74,7 +76,7 @@ export function SplitHeading({
                   initial={reduce ? false : { y: "110%" }}
                   {...(immediate || reduce ? { animate: { y: "0%" } } : { whileInView: { y: "0%" } })}
                   viewport={{ once: true, margin: "0px 0px -10% 0px" }}
-                  transition={reduce ? { duration: 0 } : { duration: 1.2, ease: EASE, delay: d }}
+                  transition={reduce ? { duration: 0 } : { duration: 0.9, ease: EASE, delay: d }}
                 >
                   {word}
                   {wi < line.split(" ").length - 1 ? " " : ""}
@@ -113,14 +115,14 @@ export function MaskReveal({
       initial={reduce ? false : { clipPath: from }}
       {...(reduce ? { animate: { clipPath: "inset(0% 0% 0% 0%)" } } : { whileInView: { clipPath: "inset(0% 0% 0% 0%)" } })}
       viewport={{ once: true, margin: "0px 0px -15% 0px" }}
-      transition={reduce ? { duration: 0 } : { duration: 1.4, ease: [0.77, 0, 0.18, 1], delay }}
+      transition={reduce ? { duration: 0 } : { duration: 0.9, ease: EASE_IN_OUT, delay }}
     >
       <motion.div
         className="h-full w-full"
-        initial={reduce ? false : { scale: 1.18 }}
+        initial={reduce ? false : { scale: 1.08 }}
         {...(reduce ? { animate: { scale: 1 } } : { whileInView: { scale: 1 } })}
         viewport={{ once: true, margin: "0px 0px -15% 0px" }}
-        transition={reduce ? { duration: 0 } : { duration: 1.8, ease: EASE, delay }}
+        transition={reduce ? { duration: 0 } : { duration: 0.9, ease: EASE, delay }}
       >
         {children}
       </motion.div>
@@ -191,7 +193,35 @@ export function DrawLine({ className = "" }: { className?: string }) {
       initial={reduce ? false : { scaleX: 0 }}
       {...(reduce ? { animate: { scaleX: 1 } } : { whileInView: { scaleX: 1 } })}
       viewport={{ once: true, margin: "0px 0px -10% 0px" }}
-      transition={reduce ? { duration: 0 } : { duration: 1.6, ease: EASE }}
+      transition={reduce ? { duration: 0 } : { duration: 0.9, ease: EASE }}
     />
+  );
+}
+
+/**
+ * Abschnittsübergang „aus einem Guss“: Ein dunkler Abschnitt wächst beim Hereinscrollen
+ * aus einer abgerundeten, leicht eingerückten Fläche auf volle Breite. Direkt an den Scroll
+ * gekoppelt (keine Dauer, also jederzeit unterbrechbar). Reduzierte Bewegung: sofort voll.
+ */
+export function ExpandSection({
+  children,
+  className = "",
+  id,
+}: {
+  children: ReactNode;
+  className?: string;
+  id?: string;
+}) {
+  const ref = useRef<HTMLElement>(null);
+  const reduce = useReduceMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start 0.25"] });
+  const clipPath = useTransform(scrollYProgress, (p) => {
+    const k = 1 - Math.min(1, Math.max(0, p));
+    return `inset(0% ${(k * 4).toFixed(2)}% 0% ${(k * 4).toFixed(2)}% round ${(k * 32).toFixed(1)}px ${(k * 32).toFixed(1)}px 0 0)`;
+  });
+  return (
+    <motion.section ref={ref} id={id} className={className} style={reduce ? undefined : { clipPath }}>
+      {children}
+    </motion.section>
   );
 }

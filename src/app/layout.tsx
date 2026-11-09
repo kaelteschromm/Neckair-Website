@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Instrument_Serif } from "next/font/google";
+import { Manrope, Instrument_Serif, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -8,6 +8,7 @@ import { site } from "@/lib/site";
 
 // Schriften werden beim Build heruntergeladen und lokal ausgeliefert – keine Verbindung zu Google im Browser.
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
+const mono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-jbmono", display: "swap" });
 const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-serif", display: "swap" });
 
 export const metadata: Metadata = {
@@ -57,7 +58,7 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de" className={`${manrope.variable} ${serif.variable}`}>
+    <html lang="de" className={`${manrope.variable} ${serif.variable} ${mono.variable}`}>
       <body className="min-h-dvh">
         <noscript>
           <style>{`[data-reveal]{opacity:1!important;transform:none!important;clip-path:none!important}`}</style>

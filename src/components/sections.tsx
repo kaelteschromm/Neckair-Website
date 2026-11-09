@@ -5,8 +5,15 @@ import { Arrow } from "./Arrow";
 import { DrawLine, Reveal, SplitHeading } from "./motion";
 import type { ImageName } from "@/lib/images.generated";
 import { site } from "@/lib/site";
+import { LightField, type LightMode } from "./LightField";
 
-/** Dunkler Seitenkopf für Unterseiten – mit Bild-Maskenanimation per CSS. */
+const ACCENT = { ember: "text-ember-soft", sky: "text-sky", ice: "text-ice", teal: "text-teal" } as const;
+export type Accent = keyof typeof ACCENT;
+
+/**
+ * Dunkler Seitenkopf für Unterseiten: Bild mit Maskenaufdeckung und langsamer Kamerafahrt (CSS),
+ * darüber die seiteneigene Lichtstimmung (WebGL), Headline wortweise choreografiert.
+ */
 export function PageHero({
   eyebrow,
   title,
@@ -14,6 +21,9 @@ export function PageHero({
   image,
   imageAlt,
   tone = "cool",
+  accent,
+  light,
+  hud,
   compact = false,
 }: {
   eyebrow: string;
@@ -22,29 +32,33 @@ export function PageHero({
   image?: ImageName;
   imageAlt?: string;
   tone?: "warm" | "cool";
+  accent?: Accent;
+  light?: LightMode;
+  hud?: string[];
   compact?: boolean;
 }) {
   const words = [title[0], title[1]].filter(Boolean) as string[];
+  const acc = ACCENT[accent ?? (tone === "warm" ? "ember" : "sky")];
   let i = 0;
   return (
     <section
       className={`grain relative isolate flex overflow-hidden bg-navy-950 text-paper ${
-        compact ? "min-h-[56svh] items-end" : "min-h-[88svh] items-end"
+        compact ? "min-h-[56svh] items-end" : "min-h-[92svh] items-end"
       }`}
     >
       {image && (
         <div className="hero-media absolute inset-0 -z-10">
-          <Picture name={image} alt={imageAlt ?? ""} priority sizes="100vw" />
+          <div className="hero-camera h-full w-full">
+            <Picture name={image} alt={imageAlt ?? ""} priority sizes="100vw" />
+          </div>
           <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/55 to-navy-950/25" />
-          <div className="absolute inset-0 bg-gradient-to-r from-navy-950/70 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-navy-950/75 to-transparent" />
         </div>
       )}
-      <AmbientWaves intensity={image ? 0.6 : 1} className="-z-10" />
+      {light ? <LightField mode={light} className="-z-10" /> : <AmbientWaves intensity={image ? 0.6 : 1} className="-z-10" />}
+      <div aria-hidden className="grid-lines absolute inset-0 -z-10 opacity-30" />
       <div className="container-x pb-16 pt-36 lg:pb-24">
-        <p
-          className={`eyebrow hero-fade ${tone === "warm" ? "text-ember-soft" : "text-sky"}`}
-          style={{ animationDelay: "0.4s" }}
-        >
+        <p className={`eyebrow hero-fade ${acc}`} style={{ animationDelay: "0.35s" }}>
           {eyebrow}
         </p>
         <h1 className="mt-6 max-w-5xl text-[clamp(2.4rem,8vw,7.5rem)] font-medium leading-[0.95]">
@@ -54,7 +68,7 @@ export function PageHero({
                 <span key={wi} className="inline-block overflow-hidden pb-[0.1em] -mb-[0.1em] align-bottom">
                   <span
                     className={`hero-word ${li === 1 ? "display italic" : ""}`}
-                    style={{ animationDelay: `${0.55 + i++ * 0.07}s` }}
+                    style={{ animationDelay: `${0.45 + i++ * 0.05}s` }}
                   >
                     {w}
                     {" "}
@@ -64,11 +78,23 @@ export function PageHero({
             </span>
           ))}
         </h1>
-        {intro && (
-          <p className="hero-fade mt-8 max-w-xl text-lg leading-relaxed text-paper/75" style={{ animationDelay: "1s" }}>
-            {intro}
-          </p>
-        )}
+        <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+          {intro && (
+            <p className="hero-fade max-w-xl text-lg leading-relaxed text-paper/75" style={{ animationDelay: "0.8s" }}>
+              {intro}
+            </p>
+          )}
+          {hud && (
+            <ul className="hero-fade hud flex flex-wrap gap-x-6 gap-y-2 text-paper/45" style={{ animationDelay: "0.95s" }}>
+              {hud.map((h) => (
+                <li key={h} className="flex items-center gap-2">
+                  <span aria-hidden className={`h-1 w-1 rounded-full bg-current ${acc}`} />
+                  {h}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -154,7 +180,7 @@ export function CtaSection({
   return (
     <section className="bg-paper py-6 lg:py-10">
       <div className="container-x">
-        <div className="grain relative isolate overflow-hidden rounded-sm bg-navy-950 px-6 py-20 text-paper sm:px-12 lg:px-20 lg:py-28">
+        <div className="grain relative isolate overflow-hidden rounded-2xl bg-navy-950 px-6 py-20 text-paper sm:px-12 lg:px-20 lg:py-28">
           <div className="absolute inset-0 -z-10 opacity-35">
             <Picture name={image} alt="" sizes="100vw" />
           </div>

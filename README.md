@@ -22,6 +22,17 @@ npm run build      # statische Seite in ./out
 | `src/components/` | Header, Footer, Logo, Animationen (`motion.tsx`), Formular … |
 | `assets-src/photos/` | Original-Fotos – werden beim Build automatisch in AVIF/WebP-Größen umgewandelt |
 
+## Visuelle Effekte & Motion
+
+| Komponente | Zweck |
+|---|---|
+| `src/components/LightField.tsx` | WebGL-Lichtschicht (ein Fragment-Shader) über den Hero-Bildern; Modi: home, heat, water, climate, vent |
+| `src/components/building/` | „Das intelligente Gebäude“: eigene 3D-Projektion auf Canvas, Systeme Heizung/Wasser/Klima/Lüftung als Leitungen mit Partikeln |
+| `src/components/motion.tsx` | Scroll-Reveals, Masken, Parallax, Abschnittsübergänge |
+| `src/app/globals.css` | Motion-Tokens `--ease-out`, `--ease-in-out`, `--ease-drawer` (nach Emil Kowalski) |
+
+Alle Effekte pausieren außerhalb des Sichtbereichs und respektieren „Bewegung reduzieren“. Ohne WebGL bleibt das Foto stehen.
+
 ## Vor dem Livegang
 
 - Platzhalter in `src/lib/site.ts` ersetzen (Straße, Telefon, USt-ID, Öffnungszeiten – mit `PLATZHALTER` markiert)

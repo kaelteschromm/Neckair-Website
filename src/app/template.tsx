@@ -23,13 +23,13 @@ export default function Template({ children }: { children: React.ReactNode }) {
           className="pointer-events-none fixed inset-0 z-[60] bg-navy-950"
           initial={{ clipPath: "inset(0% 0% 0% 0%)" }}
           animate={{ clipPath: "inset(0% 0% 100% 0%)" }}
-          transition={{ duration: 0.85, ease: [0.77, 0, 0.18, 1], delay: 0.05 }}
+          transition={{ duration: 0.45, ease: [0.77, 0, 0.175, 1] }}
         />
       )}
       <motion.div
-        initial={animate ? { opacity: 0, y: 24 } : false}
+        initial={animate ? { opacity: 0, y: 8 } : false}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+        transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1], delay: 0.15 }}
       >
         {children}
       </motion.div>

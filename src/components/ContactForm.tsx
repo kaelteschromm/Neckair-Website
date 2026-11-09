@@ -13,7 +13,7 @@ type Status = "idle" | "sending" | "success" | "error";
 const field =
   "peer w-full rounded-none border-0 border-b border-navy-900/20 bg-transparent px-0 pb-3 pt-7 text-lg text-navy-900 placeholder-transparent transition-colors focus:border-navy-900 focus:outline-none focus:ring-0 aria-[invalid=true]:border-ember-strong";
 const label =
-  "pointer-events-none absolute left-0 top-7 text-lg text-muted transition-all duration-300 peer-focus:top-0 peer-focus:text-xs peer-focus:font-semibold peer-focus:uppercase peer-focus:tracking-[0.18em] peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:font-semibold peer-[:not(:placeholder-shown)]:uppercase peer-[:not(:placeholder-shown)]:tracking-[0.18em]";
+  "pointer-events-none absolute left-0 top-7 origin-left text-lg text-muted transition-[transform,color] duration-200 ease-[var(--ease-out)] peer-focus:-translate-y-7 peer-focus:scale-75 peer-focus:text-navy-900 peer-[:not(:placeholder-shown)]:-translate-y-7 peer-[:not(:placeholder-shown)]:scale-75";
 
 export function ContactForm() {
   const [topics, setTopics] = useState<string[]>([]);
@@ -76,7 +76,7 @@ export function ContactForm() {
 
   const err = (k: keyof Errors) =>
     errors[k] ? (
-      <p id={`${k}-error`} className="mt-2 text-sm text-ember-strong">
+      <p id={`${k}-error`} className="field-error mt-2 text-sm text-ember-strong">
         {errors[k]}
       </p>
     ) : null;
@@ -88,9 +88,10 @@ export function ContactForm() {
           <motion.div
             key="ok"
             role="status"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-sm bg-navy-900 p-10 text-paper lg:p-14"
+            className="rounded-2xl bg-navy-900 p-10 text-paper lg:p-14"
           >
             <p className="eyebrow text-sky">Vielen Dank</p>
             <p className="mt-6 text-3xl font-medium tracking-tight lg:text-4xl">
@@ -123,7 +124,7 @@ export function ContactForm() {
                       type="button"
                       aria-pressed={on}
                       onClick={() => toggle(t)}
-                      className={`rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-300 ${
+                      className={`press rounded-full border px-5 py-2.5 text-sm font-medium transition-[transform,background-color,border-color,color] duration-200 ${
                         on ? "border-navy-900 bg-navy-900 text-paper" : "border-navy-900/20 text-navy-900 hover:border-navy-900/60"
                       }`}
                     >
@@ -220,7 +221,7 @@ export function ContactForm() {
             </div>
             <div aria-live="assertive">
               {status === "error" && (
-                <p className="rounded-sm border border-ember-strong/30 bg-ember/10 px-5 py-4 text-sm text-ember-strong">
+                <p className="field-error rounded-xl border border-ember-strong/30 bg-ember/10 px-5 py-4 text-sm text-ember-strong">
                   Leider konnte Ihre Anfrage nicht gesendet werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt an{" "}
                   <a href={`mailto:${site.email}`} className="underline">{site.email}</a>.
                 </p>

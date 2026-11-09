@@ -1,4 +1,6 @@
 import type { ImageName } from "@/lib/images.generated";
+import type { LightMode } from "@/components/LightField";
+import type { SystemId } from "@/components/building/geometry";
 
 export type ServiceSlug = "heizung" | "sanitaer" | "klima" | "lueftung";
 
@@ -8,6 +10,12 @@ export interface Service {
   title: string;
   /** Tonwert aus dem Logo: Wärme = Orange, Luft/Wasser = Blau */
   tone: "warm" | "cool";
+  /** Akzent der Seite: Wärme (Orange), Wasser (Himmelblau), Kühle (Eisblau), Luft (Türkis) */
+  accent: "ember" | "sky" | "ice" | "teal";
+  /** Lichtstimmung des Hero-Shaders */
+  light: LightMode;
+  /** System im Gebäudemodell */
+  system: SystemId;
   kicker: string;
   headline: [string, string]; // zweiter Teil wird kursiv gesetzt
   teaser: string;
@@ -30,6 +38,9 @@ export const services: Record<ServiceSlug, Service> = {
     index: "01",
     title: "Heizung",
     tone: "warm",
+    accent: "ember",
+    light: "heat",
+    system: "heizung",
     kicker: "Wärme",
     headline: ["Wärme, die", "mitdenkt."],
     teaser: "Wärmepumpen, Flächenheizung und Modernisierung – effizient geplant für Bestand und Neubau.",
@@ -46,6 +57,7 @@ export const services: Record<ServiceSlug, Service> = {
       { title: "Wärmepumpen", text: "Luft-Wasser- und Sole-Wasser-Wärmepumpen, dimensioniert nach Heizlastberechnung statt nach Faustformel." },
       { title: "Flächenheizung", text: "Fußboden- und Wandheizung für gleichmäßige Wärme bei niedrigen Vorlauftemperaturen." },
       { title: "Modernisierung", text: "Austausch alter Kessel, Hybridlösungen und schrittweise Umstellung auf erneuerbare Wärme." },
+      { title: "Neubau & Bestand", text: "Im Neubau planen wir die Heizung von Anfang an mit, im Bestand finden wir den passenden Weg für vorhandene Heizflächen." },
       { title: "Hydraulischer Abgleich", text: "Jeder Raum bekommt genau die Wärme, die er braucht – messbar effizienter und leiser." },
       { title: "Regelung & Smart Home", text: "Moderne Regelungstechnik, die sich Ihrem Alltag anpasst und per App bedienbar ist." },
       { title: "Wartung", text: "Regelmäßige Inspektion für sichere, effiziente Anlagen und lange Lebensdauer." },
@@ -66,6 +78,9 @@ export const services: Record<ServiceSlug, Service> = {
     index: "02",
     title: "Sanitär",
     tone: "cool",
+    accent: "sky",
+    light: "water",
+    system: "wasser",
     kicker: "Wasser",
     headline: ["Bäder mit", "Haltung."],
     teaser: "Badgestaltung, Trinkwasserhygiene und Warmwasser – langlebig, normgerecht und schön.",
@@ -79,9 +94,10 @@ export const services: Record<ServiceSlug, Service> = {
     seoDescription:
       "Badplanung, barrierearme Bäder, Trinkwasserinstallation und Warmwasserbereitung von Neckair – hygienisch, langlebig und hochwertig.",
     offers: [
-      { title: "Badplanung", text: "Vom ersten Grundriss bis zur fertigen Armatur – mit klarer Linie und durchdachten Details." },
-      { title: "Barrierearme Bäder", text: "Bodengleiche Duschen und komfortable Lösungen, die mit Ihren Bedürfnissen mitwachsen." },
-      { title: "Trinkwasserinstallation", text: "Hygienische Leitungsführung nach den anerkannten Regeln der Technik – für Neubau und Sanierung." },
+      { title: "Badgestaltung", text: "Vom ersten Grundriss bis zur fertigen Armatur – mit klarer Linie und durchdachten Details." },
+      { title: "Badsanierung", text: "Aus dem alten Bad wird ein neues: koordiniert, sauber und in möglichst kurzer Bauzeit – auch barrierearm." },
+      { title: "Trinkwasserhygiene", text: "Leitungsführung und Betrieb so, dass Wasser nicht stagniert und Temperaturen eingehalten werden." },
+      { title: "Sanitärinstallation", text: "Installation nach den anerkannten Regeln der Technik – für Neubau, Umbau und Sanierung." },
       { title: "Warmwasser", text: "Effiziente Warmwasserbereitung, abgestimmt auf Heizsystem und Bedarf." },
       { title: "Wasseraufbereitung", text: "Filter und Enthärtung zum Schutz von Leitungen, Armaturen und Geräten." },
       { title: "Leckageschutz", text: "Systeme, die Wasserschäden erkennen und die Zufuhr automatisch stoppen." },
@@ -101,6 +117,9 @@ export const services: Record<ServiceSlug, Service> = {
     index: "03",
     title: "Klima",
     tone: "cool",
+    accent: "ice",
+    light: "climate",
+    system: "klima",
     kicker: "Kühle",
     headline: ["Kühle, die", "man nicht hört."],
     teaser: "Split- und Multisplit-Systeme, Gewerbeklimatisierung und Kältetechnik mit Fachkompetenz.",
@@ -118,10 +137,10 @@ export const services: Record<ServiceSlug, Service> = {
       { title: "Multisplit-Systeme", text: "Ein Außengerät, mehrere Räume – individuell regelbar und dezent in der Optik." },
       { title: "Kühlen & Heizen", text: "Moderne Klimageräte arbeiten als Wärmepumpe und heizen effizient in der Übergangszeit." },
       { title: "Gewerbe & Büro", text: "Klimatisierung für Büroflächen, Praxen, Ladenlokale und Besprechungsräume." },
-      { title: "Serverräume", text: "Zuverlässige Kühlung für IT-Technik, auf Wunsch redundant ausgelegt." },
-      { title: "Wartung & Dichtheit", text: "Inspektion, Reinigung und Dichtheitskontrollen durch zertifiziertes Kältefachpersonal." },
+      { title: "Kältetechnik", text: "Planung und fachgerechte Arbeiten am Kältekreis – von der Einzelraumkühlung bis zur Serverraumkühlung." },
+      { title: "Wartung & Dichtheit", text: "Inspektion, Reinigung und Dichtheitskontrollen nach den geltenden Vorgaben." },
     ],
-    benefits: ["Arbeiten am Kältekreis durch zertifiziertes Fachpersonal", "Leise Geräte und durchdachte Positionierung", "Saubere Leitungsführung ohne sichtbare Kompromisse"],
+    benefits: ["Fachgerechte Arbeiten am Kältekreis", "Leise Geräte und durchdachte Positionierung", "Saubere Leitungsführung ohne sichtbare Kompromisse"],
     audiences: {
       private: "Für erholsame Nächte im Sommer, ein produktives Homeoffice und angenehme Wohnräume.",
       business: "Für Arbeitsplätze, Kundenbereiche und Technikräume mit verlässlichen Temperaturen.",
@@ -137,6 +156,9 @@ export const services: Record<ServiceSlug, Service> = {
     index: "04",
     title: "Lüftung",
     tone: "cool",
+    accent: "teal",
+    light: "vent",
+    system: "lueftung",
     kicker: "Luft",
     headline: ["Frische Luft,", "ganz ohne Fenster."],
     teaser: "Kontrollierte Wohnraumlüftung mit Wärmerückgewinnung und Lüftungskonzepte für Gewerbe.",
@@ -151,6 +173,7 @@ export const services: Record<ServiceSlug, Service> = {
       "Kontrollierte Wohnraumlüftung mit Wärmerückgewinnung, dezentrale Lüftung, Lüftungskonzepte nach DIN 1946-6 und Gewerbelüftung von Neckair.",
     offers: [
       { title: "Zentrale Wohnraumlüftung", text: "Kontrollierte Be- und Entlüftung mit Wärmerückgewinnung für das ganze Haus." },
+      { title: "Wärmerückgewinnung", text: "Die Wärme der Abluft geht an die frische Zuluft über – die Luft ist frisch, die Wärme bleibt im Haus." },
       { title: "Dezentrale Lüftung", text: "Einzelraumlösungen, ideal für die Sanierung ohne aufwendige Kanalführung." },
       { title: "Lüftungskonzept", text: "Bewertung des Lüftungsbedarfs nach DIN 1946-6 für Neubau und Modernisierung." },
       { title: "Gewerbelüftung", text: "Lüftungsanlagen für Büros, Praxen und Gewerbeflächen mit hoher Belegung." },

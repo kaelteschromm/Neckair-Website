@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { useReduceMotion } from "@/lib/useReduceMotion";
 import { useState, type ReactNode } from "react";
@@ -57,17 +58,18 @@ export function ReferenceGrid({ items }: { items: GridItem[] }) {
               initial={{ opacity: 0, y: reduce ? 0 : 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: reduce ? 1 : 0.97 }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: reduce ? 0 : (i % 2) * 0.06 }}
+              transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1], delay: reduce ? 0 : (i % 2) * 0.04 }}
               className={`group ${i % 2 === 1 ? "md:mt-20" : ""}`}
             >
+              <Link href={`/referenzen/${r.slug}/`} className="block focus-visible:outline-offset-8">
               <article>
-                <div className="relative aspect-[4/3] overflow-hidden rounded-sm bg-navy-900">
-                  <div className="h-full w-full transition-transform duration-[1.4s] ease-[var(--ease-out-expo)] group-hover:scale-[1.04]">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-navy-900">
+                  <div className="h-full w-full transition-transform duration-300 ease-[var(--ease-out)] group-hover:scale-[1.03]">
                     {r.media}
                   </div>
                   {r.example && (
                     <span className="absolute left-4 top-4 rounded-full bg-paper/90 px-3 py-1 text-[0.7rem] font-medium text-navy-900 backdrop-blur">
-                      Beispielprojekt · Symbolbild
+                      Demo-Projekt · Symbolbild
                     </span>
                   )}
                 </div>
@@ -84,6 +86,7 @@ export function ReferenceGrid({ items }: { items: GridItem[] }) {
                   ))}
                 </ul>
               </article>
+              </Link>
             </motion.li>
           ))}
         </AnimatePresence>

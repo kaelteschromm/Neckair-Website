@@ -21,14 +21,16 @@ export default function ReferenzenPage() {
         intro="Jedes Gebäude ist anders. Hier zeigen wir, wie wir Wärme, Wasser, Klima und Luft in unterschiedlichen Projekten umsetzen."
         image="villa-pforzheim"
         imageAlt="Moderne weiße Villa mit auskragendem Obergeschoss"
+        light="home"
+        hud={["Heizung", "Sanitär", "Klima", "Lüftung"]}
         compact
       />
       <section className="bg-paper pb-40 pt-20 lg:pt-28">
         <div className="container-x">
           {hasExamples && (
             <Reveal>
-              <p className="mb-12 max-w-2xl rounded-sm border border-navy-900/12 bg-paper-2 px-5 py-4 text-sm leading-relaxed text-muted">
-                Hinweis: Die folgenden Einträge sind Beispielprojekte mit Symbolbildern. Sie zeigen typische Leistungsumfänge und werden
+              <p className="mb-12 max-w-2xl rounded-2xl border border-navy-900/12 bg-paper-2 px-5 py-4 text-sm leading-relaxed text-muted">
+                Hinweis: Die folgenden Einträge sind Demo-Projekte mit Symbolbildern. Sie zeigen typische Leistungsumfänge und werden
                 nach und nach durch echte Neckair-Projekte ersetzt.
               </p>
             </Reveal>

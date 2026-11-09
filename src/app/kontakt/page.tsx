@@ -27,7 +27,7 @@ export default function KontaktPage() {
           </div>
 
           <aside className="space-y-6 lg:col-span-5">
-            <Reveal className="rounded-sm bg-navy-900 p-8 text-paper lg:p-10">
+            <Reveal className="rounded-2xl bg-navy-900 p-8 text-paper lg:p-10">
               <p className="eyebrow text-sky">Direkt erreichen</p>
               <ul className="mt-8 space-y-6">
                 <li>
@@ -45,7 +45,7 @@ export default function KontaktPage() {
               </ul>
             </Reveal>
 
-            <Reveal delay={0.1} className="rounded-sm border border-navy-900/12 p-8 lg:p-10">
+            <Reveal delay={0.1} className="rounded-2xl border border-navy-900/12 p-8 lg:p-10">
               <p className="eyebrow text-azure-strong">Wartung</p>
               <p className="mt-6 text-xl font-medium text-navy-900">Wartungstermin online buchen</p>
               <p className="mt-3 leading-relaxed text-muted">
@@ -57,7 +57,7 @@ export default function KontaktPage() {
               </a>
             </Reveal>
 
-            <Reveal delay={0.2} className="rounded-sm border border-navy-900/12 p-8 lg:p-10">
+            <Reveal delay={0.2} className="rounded-2xl border border-navy-900/12 p-8 lg:p-10">
               <p className="eyebrow text-azure-strong">Anschrift</p>
               <address className="mt-6 not-italic leading-relaxed text-navy-900">
                 {site.name}
