@@ -7,3 +7,7 @@ next-env.d.ts
 # wird beim Build aus assets-src erzeugt
 public/img/
 src/lib/images.generated.ts
+
+# Impeccable: Engine-Binary nicht ins Repo (wird bei Bedarf neu geladen)
+.claude/skills/impeccable/scripts/bin/
+.impeccable/config.local.json
