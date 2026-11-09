@@ -27,8 +27,9 @@ jobs:
       - name: Build (statischer Export)
         run: npm run build
         env:
-          NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
-          NEXT_PUBLIC_SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+          # Live auf der eigenen Domain hünig.com (Punycode) – daher kein Unterpfad
+          NEXT_PUBLIC_BASE_PATH: ""
+          NEXT_PUBLIC_SITE_URL: https://xn--hnig-0ra.com
       - run: touch out/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:

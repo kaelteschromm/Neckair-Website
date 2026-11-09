@@ -6,7 +6,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { site } from "@/lib/site";
 import { Arrow } from "./Arrow";
 
-const TOPICS = ["Heizung", "Sanitär", "Klima", "Lüftung", "Wartung / Service", "Sonstiges"];
+const TOPICS = ["Heizung", "Sanitär", "Klima", "Lüftung", "Wartung / Service", "Störung", "Sonstiges"];
 type Errors = Partial<Record<"name" | "email" | "message" | "consent" | "topic", string>>;
 type Status = "idle" | "sending" | "success" | "error";
 

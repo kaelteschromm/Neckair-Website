@@ -65,6 +65,8 @@ export function Footer() {
           <ul className="flex flex-wrap gap-x-6 gap-y-2">
             <li><Link href="/impressum/" className="hover:text-paper">Impressum</Link></li>
             <li><Link href="/datenschutz/" className="hover:text-paper">Datenschutz</Link></li>
+            <li><Link href="/agb/" className="hover:text-paper">AGB</Link></li>
+            <li><Link href="/nutzungsbedingungen/" className="hover:text-paper">Nutzungsbedingungen</Link></li>
           </ul>
         </div>
       </div>

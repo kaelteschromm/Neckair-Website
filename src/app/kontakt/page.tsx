@@ -45,6 +45,7 @@ export default function KontaktPage() {
               </ul>
             </Reveal>
 
+            <div id="wartung" className="scroll-mt-28" />
             <Reveal delay={0.1} className="rounded-2xl border border-navy-900/12 p-8 lg:p-10">
               <p className="eyebrow text-azure-strong">Wartung</p>
               <p className="mt-6 text-xl font-medium text-navy-900">Wartungstermin online buchen</p>
