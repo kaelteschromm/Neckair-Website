@@ -7,7 +7,6 @@ import { useEffect, useRef, useState } from "react";
 import { useReduceMotion } from "@/lib/useReduceMotion";
 import { Logo } from "./Logo";
 import { Picture } from "./Picture";
-import { Arrow } from "./Arrow";
 import { site } from "@/lib/site";
 import { serviceList } from "@/content/services";
 
@@ -82,10 +81,10 @@ export function Header() {
       <header
         className={`fixed inset-x-0 top-0 z-50 transition-[transform,background-color,color,box-shadow] duration-300 ease-[var(--ease-out)] ${
           hidden && !open ? "-translate-y-full" : "translate-y-0"
-        } ${solid ? "bg-paper/85 text-navy-900 shadow-[0_1px_0_rgb(11_34_57/0.08)] backdrop-blur-xl" : "bg-transparent text-paper"}`}
+        } ${solid ? "bg-white/90 text-navy shadow-[0_1px_0_rgb(11_34_57/0.1)] backdrop-blur-xl" : "bg-transparent text-on-dark"}`}
       >
         <div className="container-x flex h-20 items-center justify-between gap-6 lg:h-24">
-          <Link href="/" className="relative z-10 shrink-0" aria-label="Neckair – zur Startseite">
+          <Link href="/" className="relative z-10 shrink-0" aria-label="NECKAIR – zur Startseite">
             <Logo tone={solid ? "dark" : "light"} className="h-7 w-auto lg:h-8" />
           </Link>
 
@@ -123,26 +122,28 @@ export function Header() {
                   {/* Dropdown: wächst aus dem Auslöser (origin oben links), 200 ms, --ease-out */}
                   <div
                     id="leistungen-menu"
-                    className={`absolute left-0 top-full w-[44rem] origin-top-left pt-3 transition-[opacity,transform,visibility] duration-200 ease-[var(--ease-out)] ${
+                    className={`absolute left-0 top-full w-[40rem] origin-top-left pt-3 transition-[opacity,transform,visibility] duration-200 ease-[var(--ease-out)] ${
                       drop ? "visible scale-100 opacity-100" : "pointer-events-none invisible scale-[0.97] opacity-0"
                     }`}
                   >
-                    <div className="glass overflow-hidden rounded-2xl bg-navy-950/80 p-3 text-paper">
-                      <ul className="grid grid-cols-2 gap-1">
+                    <div className="overflow-hidden border border-on-dark/10 bg-graphite p-2 text-on-dark shadow-[0_24px_48px_-24px_rgb(0_0_0/0.6)]">
+                      <ul className="grid gap-1">
                         {serviceList.map((s) => (
                           <li key={s.slug}>
                             <Link
                               href={`/${s.slug}/`}
                               tabIndex={drop ? 0 : -1}
-                              className="group/item flex gap-4 rounded-xl p-3 transition-colors duration-200 hover:bg-paper/[0.06] focus-visible:bg-paper/[0.06]"
+                              className="group/item flex items-center gap-5 p-3 transition-colors duration-200 hover:bg-on-dark/[0.06] focus-visible:bg-on-dark/[0.06]"
                             >
-                              <span className="relative block h-20 w-24 shrink-0 overflow-hidden rounded-lg">
+                              <span className="relative block h-16 w-24 shrink-0 overflow-hidden">
                                 <Picture name={s.hero} alt="" sizes="96px" imgClassName="transition-transform duration-300 ease-[var(--ease-out)] group-hover/item:scale-105" />
                               </span>
                               <span className="min-w-0">
-                                <span className="hud text-paper/45">{s.index} · {s.kicker}</span>
-                                <span className="mt-1 block text-lg font-medium">{s.title}</span>
-                                <span className="mt-1 line-clamp-2 block text-sm leading-snug text-paper/60">{s.teaser}</span>
+                                <span className="flex items-center gap-3 font-display text-lg font-semibold [font-stretch:110%]">
+                                  <span aria-hidden className={`h-2 w-2 ${s.medium === "heat" ? "bg-heat" : s.medium === "water" ? "bg-water" : "bg-cold"}`} />
+                                  {s.title}
+                                </span>
+                                <span className="mt-1 line-clamp-2 block text-sm leading-snug text-on-dark-muted">{s.teaser}</span>
                               </span>
                             </Link>
                           </li>
@@ -172,19 +173,16 @@ export function Header() {
           </nav>
 
           <div className="flex items-center gap-3">
-            <a
-              href={`tel:${site.phoneHref}`}
-              className="hud hidden opacity-70 transition-opacity duration-200 hover:opacity-100 xl:block"
-            >
+            <a href={`tel:${site.phoneHref}`} className="hidden text-sm font-medium opacity-80 transition-opacity duration-200 hover:opacity-100 xl:block">
               {site.phone}
             </a>
-            <Link href="/kontakt/" className={`btn hidden !py-3 sm:inline-flex ${solid ? "btn-dark" : "btn-light"}`}>
-              Projekt anfragen <span className="arrow" aria-hidden>→</span>
+            <Link href="/kontakt/" className={`btn hidden !py-3 sm:inline-flex ${solid ? "btn-primary" : "btn-light"}`}>
+              Projekt anfragen
             </Link>
             <button
               ref={toggleRef}
               type="button"
-              className="press relative z-10 flex h-11 w-11 items-center justify-center rounded-full lg:hidden"
+              className="press relative z-10 flex h-11 w-11 items-center justify-center lg:hidden"
               aria-expanded={open}
               aria-controls="mobile-menu"
               aria-label={open ? "Menü schließen" : "Menü öffnen"}
@@ -207,16 +205,15 @@ export function Header() {
             role="dialog"
             aria-modal="true"
             aria-label="Menü"
-            className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-navy-950 text-paper lg:hidden"
+            className="fixed inset-0 z-40 flex flex-col overflow-y-auto bg-graphite text-on-dark lg:hidden"
             initial={reduce ? { opacity: 0 } : { clipPath: "inset(0% 0% 100% 0%)" }}
             animate={reduce ? { opacity: 1 } : { clipPath: "inset(0% 0% 0% 0%)" }}
             exit={reduce ? { opacity: 0 } : { clipPath: "inset(0% 0% 100% 0%)" }}
             transition={{ duration: reduce ? 0.2 : 0.45, ease: [0.32, 0.72, 0, 1] }}
           >
-            <div aria-hidden className="grid-lines pointer-events-none absolute inset-0 opacity-40" />
             <nav aria-label="Mobile Navigation" className="container-x relative flex flex-1 flex-col justify-center pb-8 pt-28">
-              <p className="hud mb-3 text-paper/40">Leistungen</p>
-              <ul className="grid grid-cols-2 gap-2">
+              <p className="mb-3 text-sm text-on-dark-muted">Leistungen</p>
+              <ul className="grid gap-2">
                 {serviceList.map((s, i) => (
                   <motion.li
                     key={s.slug}
@@ -224,10 +221,13 @@ export function Header() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1], delay: 0.12 + i * 0.04 }}
                   >
-                    <Link href={`/${s.slug}/`} className="press relative block h-24 overflow-hidden rounded-xl">
-                      <Picture name={s.hero} alt="" sizes="50vw" />
-                      <span className="absolute inset-0 bg-gradient-to-t from-navy-950/90 to-navy-950/10" />
-                      <span className="absolute bottom-2.5 left-3 text-lg font-medium">{s.title}</span>
+                    <Link href={`/${s.slug}/`} className="press relative block h-20 overflow-hidden">
+                      <Picture name={s.hero} alt="" sizes="100vw" />
+                      <span className="absolute inset-0 bg-gradient-to-r from-graphite/90 to-graphite/20" />
+                      <span className="absolute bottom-3 left-4 flex items-center gap-3 font-display text-xl font-semibold [font-stretch:110%]">
+                        <span aria-hidden className={`h-2 w-2 ${s.medium === "heat" ? "bg-heat" : s.medium === "water" ? "bg-water" : "bg-cold"}`} />
+                        {s.title}
+                      </span>
                     </Link>
                   </motion.li>
                 ))}
@@ -240,16 +240,15 @@ export function Header() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1], delay: 0.28 + i * 0.04 }}
                   >
-                    <Link href={item.href} className="flex items-center justify-between py-2 text-[1.9rem] font-medium leading-tight tracking-tight">
+                    <Link href={item.href} className="flex items-center justify-between py-2 font-display text-[1.9rem] font-semibold leading-tight [font-stretch:115%]">
                       {item.label}
-                      <Arrow className="h-5 w-5 opacity-40" />
                     </Link>
                   </motion.li>
                 ))}
               </ul>
             </nav>
-            <div className="container-x relative space-y-1 pb-10 text-sm text-paper/60">
-              <a href={`tel:${site.phoneHref}`} className="hud block">{site.phone}</a>
+            <div className="container-x relative space-y-1 pb-10 text-sm text-on-dark-muted">
+              <a href={`tel:${site.phoneHref}`} className="block">{site.phone}</a>
               <a href={`mailto:${site.email}`} className="block">{site.email}</a>
             </div>
           </motion.div>

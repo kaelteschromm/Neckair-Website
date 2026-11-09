@@ -20,7 +20,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
       {animate && (
         <motion.div
           aria-hidden
-          className="pointer-events-none fixed inset-0 z-[60] bg-navy-950"
+          className="pointer-events-none fixed inset-0 z-[60] bg-graphite"
           initial={{ clipPath: "inset(0% 0% 0% 0%)" }}
           animate={{ clipPath: "inset(0% 0% 100% 0%)" }}
           transition={{ duration: 0.45, ease: [0.77, 0, 0.175, 1] }}

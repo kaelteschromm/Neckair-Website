@@ -1,11 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Picture } from "./Picture";
-import { Arrow } from "./Arrow";
-import { ExpandSection, MaskReveal, Reveal } from "./motion";
-import { CtaSection, PageHero, ProcessSection, SectionIntro } from "./sections";
-import { ServiceScene } from "./building/ServiceScene";
-import { services, serviceList, type ServiceSlug } from "@/content/services";
+import { MaskReveal } from "./motion";
+import { CtaSection, PageHero, ProcessSection, SectionHeading } from "./sections";
+import { TechDrawing } from "./drawings/TechDrawing";
+import { services, serviceList, type Medium, type ServiceSlug } from "@/content/services";
 import { site } from "@/lib/site";
 
 export function serviceMetadata(slug: ServiceSlug): Metadata {
@@ -14,17 +13,20 @@ export function serviceMetadata(slug: ServiceSlug): Metadata {
     title: s.seoTitle,
     description: s.seoDescription,
     alternates: { canonical: `/${slug}/` },
-    openGraph: { title: `${s.seoTitle} | Neckair`, description: s.seoDescription },
+    openGraph: { title: `${s.seoTitle} | NECKAIR`, description: s.seoDescription },
   };
 }
 
-const ACCENT_TEXT = { ember: "text-ember-strong", sky: "text-azure-strong", ice: "text-azure-strong", teal: "text-teal-strong" } as const;
-const ACCENT_BG = { ember: "bg-ember", sky: "bg-sky", ice: "bg-sky-soft", teal: "bg-teal" } as const;
+/** Jede Leistungswelt hat ihre eigene Lichtstimmung – gleiche Grammatik, andere Atmosphäre. */
+const WORLD: Record<Medium, { tint: string; light: "heat" | "water" | "climate"; ink: string; bar: string }> = {
+  heat: { tint: "#ece7e2", light: "heat", ink: "text-heat-ink", bar: "bg-heat" },
+  water: { tint: "#e3e9ee", light: "water", ink: "text-water-ink", bar: "bg-water" },
+  cold: { tint: "#e2ebed", light: "climate", ink: "text-cold-ink", bar: "bg-cold" },
+};
 
 export function ServicePage({ slug }: { slug: ServiceSlug }) {
   const s = services[slug];
-  const accent = ACCENT_TEXT[s.accent];
-  const accentBg = ACCENT_BG[s.accent];
+  const w = WORLD[s.medium];
   const idx = serviceList.findIndex((x) => x.slug === slug);
   const next = serviceList[(idx + 1) % serviceList.length];
 
@@ -50,111 +52,80 @@ export function ServicePage({ slug }: { slug: ServiceSlug }) {
   ];
 
   return (
-    <>
-      <PageHero
-        eyebrow={`${s.index} — ${s.title}`}
-        title={s.headline}
-        intro={s.teaser}
-        image={s.hero}
-        imageAlt={s.heroAlt}
-        accent={s.accent}
-        light={s.light}
-        hud={s.offers.slice(0, 4).map((o) => o.title)}
-      />
+    <div style={{ backgroundColor: w.tint }}>
+      <PageHero kicker={s.title} title={s.headline} intro={s.teaser} image={s.hero} imageAlt={s.heroAlt} light={w.light}>
+        <div className="hero-fade mt-10 flex flex-wrap gap-3" style={{ animationDelay: "0.8s" }}>
+          <Link href="/kontakt/" className="btn btn-light">Beratung anfragen</Link>
+          <a href="#aufbau" className="btn btn-outline-light">So funktioniert es</a>
+        </div>
+      </PageHero>
 
-      {/* Einleitung: Haltung + Detailbild, asymmetrisch */}
-      <section className="bg-paper py-24 lg:py-36">
+      {/* Haltung und Detailbild */}
+      <section className="py-24 lg:py-32">
         <div className="container-x grid items-center gap-14 lg:grid-cols-12 lg:gap-20">
           <div className="lg:col-span-6">
-            <Reveal>
-              <p className={`eyebrow ${accent}`}>{s.kicker}</p>
-            </Reveal>
-            <Reveal delay={0.06}>
-              <p className="mt-6 text-[clamp(1.5rem,2.6vw,2.25rem)] font-medium leading-snug tracking-tight text-navy-900">{s.intro}</p>
-            </Reveal>
-            <ul className="mt-10 space-y-4">
-              {s.benefits.map((b, i) => (
-                <Reveal as="li" key={b} delay={0.1 + i * 0.05} className="flex items-start gap-4 text-muted">
-                  <span className={`mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full ${accentBg}`} />
+            <p className="text-[clamp(1.4rem,2.4vw,2rem)] font-medium leading-snug text-navy">{s.intro}</p>
+            <ul className="mt-10 space-y-3 border-t border-navy/15 pt-8">
+              {s.benefits.map((b) => (
+                <li key={b} className="flex items-baseline gap-4 text-muted">
+                  <span aria-hidden className={`h-2 w-2 shrink-0 translate-y-[-1px] ${w.bar}`} />
                   {b}
-                </Reveal>
+                </li>
               ))}
             </ul>
           </div>
           <div className="lg:col-span-5 lg:col-start-8">
-            <MaskReveal className="aspect-[4/5] rounded-2xl">
+            <MaskReveal className="plan-frame aspect-[4/5] text-navy/40">
               <Picture name={s.detail} alt={s.detailAlt} sizes="(min-width: 1024px) 40vw, 100vw" />
             </MaskReveal>
           </div>
         </div>
       </section>
 
-      {/* So wirkt es im Haus – 3D-Gebäudemodell mit Fokus auf dieses System */}
-      <section className="bg-paper pb-24 lg:pb-36">
+      {/* Technische Zeichnung, die sich beim Scrollen zeichnet */}
+      <section id="aufbau" aria-labelledby="aufbau-titel" className="pb-24 lg:pb-32">
         <div className="container-x">
-          <SectionIntro
-            eyebrow="Im Gebäude"
-            title={[`${s.title} als System,`, "nicht als Einzelteil."]}
-            text={
-              slug === "lueftung"
-                ? "Schalten Sie zwischen Zuluft, Abluft und Wärmerückgewinnung um und sehen Sie, wie die Luft durch das Haus geführt wird."
-                : "Jede Komponente hat ihren Platz. Das Modell zeigt, wie die Technik im Haus zusammenspielt."
-            }
-            className="mb-12"
-          />
-          <Reveal>
-            <ServiceScene system={s.system} interactive={slug === "lueftung"} />
-          </Reveal>
+          <div className="grid gap-8 lg:grid-cols-12">
+            <SectionHeading id="aufbau-titel" title={s.drawingTitle} className="lg:col-span-5" />
+            <p className="measure text-lg leading-relaxed text-muted lg:col-span-6 lg:col-start-7 lg:pt-3">{s.drawingText}</p>
+          </div>
+          <div className="mt-12">
+            <TechDrawing medium={s.medium} title={`Schematische Zeichnung: ${s.drawingTitle}`} />
+          </div>
         </div>
       </section>
 
-      {/* Leistungen: Überschrift angeheftet, Liste scrollt – statt gleichförmiger Kartenraster */}
-      <section className="bg-paper-2 py-24 lg:py-36">
+      {/* Leistungen: Überschrift angeheftet, Liste daneben – keine gleichförmigen Karten */}
+      <section aria-labelledby="leistungen-titel" className="border-t border-navy/10 bg-white/60 py-24 lg:py-32">
         <div className="container-x grid gap-14 lg:grid-cols-12">
           <div className="lg:col-span-4">
             <div className="lg:sticky lg:top-32">
-              <SectionIntro eyebrow="Leistungsumfang" title={["Was wir für Sie", "umsetzen."]} />
-              <Reveal delay={0.1}>
-                <Link href="/kontakt/" className="btn btn-dark mt-10">
-                  Beratung anfragen <Arrow className="arrow" />
-                </Link>
-              </Reveal>
+              <SectionHeading id="leistungen-titel" title="Was wir umsetzen." />
+              <Link href="/kontakt/" className="btn btn-primary mt-10">Projekt anfragen</Link>
             </div>
           </div>
-          <ol className="lg:col-span-7 lg:col-start-6">
-            {s.offers.map((o, i) => (
-              <Reveal
-                as="li"
-                key={o.title}
-                delay={0.04}
-                className="group relative grid grid-cols-[3rem_1fr] gap-4 border-t border-navy-900/12 py-8 last:border-b sm:grid-cols-[4rem_1fr]"
-              >
-                <span
-                  aria-hidden
-                  className={`absolute left-0 top-0 h-px w-full origin-left scale-x-0 transition-transform duration-300 ease-[var(--ease-out)] group-hover:scale-x-100 ${accentBg}`}
-                />
-                <span className={`hud pt-2 ${accent}`}>{String(i + 1).padStart(2, "0")}</span>
-                <div>
-                  <h3 className="text-2xl font-medium tracking-tight text-navy-900">{o.title}</h3>
-                  <p className="mt-2 max-w-lg leading-relaxed text-muted">{o.text}</p>
-                </div>
-              </Reveal>
+          <dl className="grid gap-x-10 sm:grid-cols-2 lg:col-span-7 lg:col-start-6">
+            {s.offers.map((o) => (
+              <div key={o.title} className="border-t border-navy/15 py-7">
+                <dt className="font-display text-xl font-semibold text-navy [font-stretch:108%]">{o.title}</dt>
+                <dd className="mt-2 leading-relaxed text-muted">{o.text}</dd>
+              </div>
             ))}
-          </ol>
+          </dl>
         </div>
       </section>
 
       {/* Zielgruppen */}
-      <section className="bg-paper py-24 lg:py-32">
-        <div className="container-x grid gap-6 md:grid-cols-2">
+      <section className="py-24 lg:py-28">
+        <div className="container-x grid gap-px bg-navy/15 md:grid-cols-2">
           {[
-            { label: "Privatkunden", text: s.audiences.private },
-            { label: "Geschäftskunden", text: s.audiences.business },
-          ].map((a, i) => (
-            <Reveal key={a.label} delay={i * 0.06} className="rounded-2xl border border-navy-900/12 p-8 lg:p-12">
-              <p className={`eyebrow ${accent}`}>{a.label}</p>
-              <p className="mt-6 text-xl leading-relaxed text-navy-900 lg:text-2xl">{a.text}</p>
-            </Reveal>
+            { label: "Für Privatkunden", text: s.audiences.private },
+            { label: "Für Geschäftskunden", text: s.audiences.business },
+          ].map((a) => (
+            <div key={a.label} style={{ backgroundColor: w.tint }} className="p-8 lg:p-12">
+              <h2 className={`text-lg ${w.ink}`}>{a.label}</h2>
+              <p className="mt-4 text-xl leading-relaxed text-navy lg:text-2xl">{a.text}</p>
+            </div>
           ))}
         </div>
       </section>
@@ -162,56 +133,41 @@ export function ServicePage({ slug }: { slug: ServiceSlug }) {
       <ProcessSection />
 
       {/* FAQ */}
-      <section className="bg-paper py-24 lg:py-36">
+      <section aria-labelledby="faq-titel" className="py-24 lg:py-32">
         <div className="container-x grid gap-12 lg:grid-cols-12">
-          <div className="lg:col-span-4">
-            <SectionIntro eyebrow="Häufige Fragen" title={["Gut zu", "wissen."]} />
-          </div>
+          <SectionHeading id="faq-titel" title="Häufige Fragen." className="lg:col-span-4" />
           <div className="lg:col-span-8">
-            {s.faq.map((f, i) => (
-              <Reveal key={f.q} delay={i * 0.04}>
-                <details className="faq group border-t border-navy-900/12 last:border-b [&_summary::-webkit-details-marker]:hidden">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-7 text-lg font-medium text-navy-900 lg:text-xl">
-                    {f.q}
-                    <span className="relative h-4 w-4 shrink-0" aria-hidden>
-                      <span className="absolute left-0 top-1/2 h-px w-4 bg-current" />
-                      <span className="absolute left-0 top-1/2 h-px w-4 rotate-90 bg-current transition-transform duration-200 ease-[var(--ease-out)] group-open:rotate-0" />
-                    </span>
-                  </summary>
-                  <p className="max-w-2xl pb-8 leading-relaxed text-muted">{f.a}</p>
-                </details>
-              </Reveal>
+            {s.faq.map((f) => (
+              <details key={f.q} className="faq group border-t border-navy/15 last:border-b [&_summary::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-6 text-lg font-medium text-navy">
+                  {f.q}
+                  <span className="relative h-4 w-4 shrink-0" aria-hidden>
+                    <span className="absolute left-0 top-1/2 h-px w-4 bg-current" />
+                    <span className="absolute left-0 top-1/2 h-px w-4 rotate-90 bg-current transition-transform duration-200 ease-[var(--ease-out)] group-open:rotate-0" />
+                  </span>
+                </summary>
+                <p className="measure pb-7 leading-relaxed text-muted">{f.a}</p>
+              </details>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Nächste Leistung – wächst beim Hereinscrollen auf volle Breite */}
-      <ExpandSection className="bg-navy-950 text-paper">
-        <Link href={`/${next.slug}/`} className="group relative block overflow-hidden">
-          <div className="absolute inset-0 opacity-45 transition-opacity duration-300 group-hover:opacity-60">
-            <div className="h-full w-full transition-transform duration-300 ease-[var(--ease-out)] group-hover:scale-[1.03]">
-              <Picture name={next.hero} alt="" sizes="100vw" />
-            </div>
-          </div>
-          <div className="absolute inset-0 bg-gradient-to-r from-navy-950/90 to-navy-950/20" />
-          <div className="container-x relative flex items-end justify-between gap-6 py-20 lg:py-28">
-            <div>
-              <p className="hud text-paper/55">Nächste Leistung · {next.index} / 04</p>
-              <p className="mt-4 text-5xl font-medium tracking-tight lg:text-8xl">{next.title}</p>
-              <p className="mt-3 max-w-md text-paper/60">{next.teaser}</p>
-            </div>
-            <span className="press flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-paper/30 transition-colors duration-200 group-hover:bg-paper group-hover:text-navy-900">
-              <Arrow />
-            </span>
-          </div>
-        </Link>
-      </ExpandSection>
+      {/* Nächste Leistungswelt */}
+      <Link href={`/${next.slug}/`} className="group relative block overflow-hidden bg-graphite text-on-dark">
+        <div className="absolute inset-0 opacity-40 transition-opacity duration-300 group-hover:opacity-55">
+          <Picture name={next.hero} alt="" sizes="100vw" />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-graphite/90 to-graphite/20" />
+        <div className="container-x relative py-20 lg:py-28">
+          <p className="text-sm text-on-dark-muted">Nächste Leistung</p>
+          <p className="font-display mt-3 text-5xl font-semibold [font-stretch:118%] lg:text-7xl">{next.title}</p>
+          <p className="measure mt-3 text-on-dark-muted">{next.teaser}</p>
+        </div>
+      </Link>
 
-      <div className="h-16 bg-paper lg:h-24" />
       <CtaSection image={s.detail} />
-      <div className="h-16 bg-paper lg:h-24" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-    </>
+    </div>
   );
 }

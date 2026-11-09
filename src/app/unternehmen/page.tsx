@@ -1,171 +1,140 @@
 import type { Metadata } from "next";
 import { Picture } from "@/components/Picture";
 import { Logo } from "@/components/Logo";
-import { MaskReveal, Reveal, ScrollText } from "@/components/motion";
-import { CtaSection, PageHero, ProcessSection, SectionIntro } from "@/components/sections";
+import { MaskReveal } from "@/components/motion";
+import { CtaSection, PageHero, ProcessSection, SectionHeading } from "@/components/sections";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Unternehmen",
-  description: "Neckair ist Ihr Fachbetrieb für Heizung, Sanitär, Klima und Lüftung. Lernen Sie unsere Haltung, unsere Arbeitsweise und unseren Inhaber kennen.",
+  description: "NECKAIR – Handwerk mit Ingenieursblick. Haltung, Arbeitsweise und Qualitätsanspruch Ihres Fachbetriebs für Heizung, Sanitär & Trinkwasser sowie Klima & Kälte.",
   alternates: { canonical: "/unternehmen/" },
 };
 
-const values = [
+const VALUES = [
   { title: "Präzision", text: "Wir rechnen, messen und planen, bevor wir bauen. So passt jede Anlage zum Gebäude – und nicht umgekehrt." },
   { title: "Verlässlichkeit", text: "Zusagen gelten. Termine, Preise und Absprachen sind für uns kein Verhandlungsspielraum." },
-  { title: "Weitsicht", text: "Wir denken an morgen: an Effizienz, Wartbarkeit und daran, dass Ihre Technik viele Jahre gut funktioniert." },
+  { title: "Weitsicht", text: "Wir denken an Effizienz, Wartbarkeit und daran, dass Ihre Technik viele Jahre gut funktioniert." },
   { title: "Sauberkeit", text: "Eine ordentliche Baustelle ist Ausdruck von Respekt – vor Ihrem Zuhause und vor unserer Arbeit." },
 ];
+const CARE = [
+  { title: "Zuhören", text: "Wir klären zuerst, was Ihnen wichtig ist: Komfort, Kosten, Gestaltung oder Zeitplan." },
+  { title: "Ehrlich beraten", text: "Wenn eine Lösung für Ihr Gebäude nicht sinnvoll ist, sagen wir das – und zeigen die Alternative." },
+  { title: "Transparent planen", text: "Angebote, die man versteht: klar gegliedert, nachvollziehbar, ohne versteckte Positionen." },
+  { title: "Dranbleiben", text: "Nach der Inbetriebnahme sind wir für Wartung, Fragen und schnelle Hilfe weiter für Sie da." },
+];
+const QUALITY = [
+  { title: "Planung vor Montage", text: "Heizlast, Wasserbedarf, Kühllast: Wir rechnen, bevor wir bohren." },
+  { title: "Markenkomponenten", text: "Bewährte Hersteller mit langfristiger Ersatzteilversorgung." },
+  { title: "Saubere Dokumentation", text: "Nachvollziehbare Unterlagen zu Ihrer Anlage und ihren Einstellungen." },
+  { title: "Einweisung inklusive", text: "Wir erklären Ihre Anlage so, dass Sie sie im Alltag sicher bedienen können." },
+];
+
+function DefList({ items, dark = false }: { items: { title: string; text: string }[]; dark?: boolean }) {
+  return (
+    <dl className="grid gap-x-10 sm:grid-cols-2">
+      {items.map((v) => (
+        <div key={v.title} className={`border-t py-7 ${dark ? "border-on-dark/15" : "border-navy/15"}`}>
+          <dt className={`font-display text-xl font-semibold [font-stretch:108%] ${dark ? "text-on-dark" : "text-navy"}`}>{v.title}</dt>
+          <dd className={`mt-2 leading-relaxed ${dark ? "text-on-dark-muted" : "text-muted"}`}>{v.text}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
 
 export default function UnternehmenPage() {
   return (
     <>
       <PageHero
-        eyebrow="Unternehmen"
-        title={["Handwerk mit", "Ingenieursblick."]}
-        intro="Neckair verbindet solides Fachhandwerk mit moderner Gebäudetechnik – für Menschen, die Wert auf Qualität legen."
+        kicker="Unternehmen"
+        title="Handwerk mit Ingenieursblick."
+        intro="NECKAIR verbindet solides Fachhandwerk mit moderner Gebäudetechnik – für Menschen, die Wert auf Qualität legen."
         image="beton"
         imageAlt="Abstrakte Betonarchitektur mit klaren Linien"
         light="home"
-        hud={["Präzision", "Verlässlichkeit", "Weitsicht"]}
       />
 
-      <section className="bg-paper py-28 lg:py-40">
+      <section className="bg-kalk py-24 lg:py-32">
         <div className="container-x grid gap-12 lg:grid-cols-12">
-          <Reveal className="lg:col-span-3">
-            <p className="eyebrow text-azure-strong">Haltung</p>
-          </Reveal>
-          <div className="lg:col-span-9">
-            <ScrollText
-              className="text-[clamp(1.75rem,3.4vw,3rem)] font-medium leading-[1.2] tracking-tight text-navy-900"
-              text="Unser Name verbindet zwei Dinge, die uns wichtig sind: die Verwurzelung in unserer Region und die Luft, die wir atmen. Wir verstehen Gebäudetechnik als System – Wärme, Wasser, Kühle und Luft gehören zusammen und verdienen eine Planung, die das Ganze im Blick behält."
-            />
-          </div>
+          <SectionHeading title="Haltung" className="lg:col-span-4" />
+          <p className="text-[clamp(1.4rem,2.6vw,2.2rem)] font-medium leading-snug text-navy lg:col-span-8">
+            Wir verstehen Gebäudetechnik als System. Wärme, Wasser und Kälte gehören zusammen und verdienen eine Planung, die das Ganze
+            im Blick behält – vom ersten Gespräch bis zur Wartung nach vielen Jahren.
+          </p>
         </div>
       </section>
 
-      {/* Inhaber */}
-      <section className="bg-paper-2 py-24 lg:py-36">
+      <section className="border-t border-navy/10 bg-white py-24 lg:py-32">
         <div className="container-x grid items-center gap-14 lg:grid-cols-12 lg:gap-20">
           <div className="lg:col-span-5">
-            <MaskReveal className="aspect-[4/5] rounded-2xl bg-navy-900">
+            <MaskReveal className="plan-frame aspect-[4/5] bg-graphite text-navy/40">
               {/* PLATZHALTER: hier später ein Porträtfoto des Inhabers einsetzen */}
-              <div className="flex h-full w-full flex-col items-center justify-center gap-6 bg-navy-900 p-10 text-center text-paper/60">
-                <Logo tone="light" markOnly className="w-32" />
+              <div className="flex h-full w-full flex-col items-center justify-center gap-6 bg-graphite p-10 text-center text-on-dark-muted">
+                <Logo tone="light" markOnly className="w-28" />
                 <span className="text-sm">Porträtfoto folgt</span>
               </div>
             </MaskReveal>
           </div>
           <div className="lg:col-span-7">
-            <SectionIntro eyebrow="Inhaber" title={[site.owner, "Gründer von Neckair"]} />
-            <Reveal delay={0.15}>
-              <p className="mt-8 max-w-xl text-lg leading-relaxed text-muted">
-                Mit Neckair hat {site.owner} einen Fachbetrieb aufgebaut, der Wärme- und Kältetechnik aus einer Hand anbietet. Sein Anspruch:
-                Kunden ehrlich beraten, Anlagen sauber planen und Projekte so umsetzen, dass sie über viele Jahre Freude machen.
-              </p>
-            </Reveal>
-            <Reveal delay={0.25}>
-              <p className="display mt-10 max-w-xl border-l-2 border-sky pl-6 text-2xl italic leading-snug text-navy-900 lg:text-3xl">
-                „Gute Technik merkt man nicht. Man merkt nur, dass alles funktioniert.“
-              </p>
-            </Reveal>
+            <p className="text-sm font-medium text-muted">Inhaber</p>
+            <h2 className="mt-3 text-[clamp(2rem,4vw,3.4rem)] text-navy">{site.owner}</h2>
+            <p className="measure mt-8 text-lg leading-relaxed text-muted">
+              Mit NECKAIR hat {site.owner} einen Fachbetrieb aufgebaut, der Heizung, Sanitär & Trinkwasser sowie Klima & Kälte aus einer
+              Hand anbietet. Sein Anspruch: ehrlich beraten, sauber planen und Projekte so umsetzen, dass sie über viele Jahre Freude
+              machen.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Werte */}
-      <section className="bg-paper py-24 lg:py-36">
-        <div className="container-x">
-          <SectionIntro eyebrow="Werte" title={["Wofür", "wir stehen."]} className="mb-16" />
-          <ul className="grid gap-px overflow-hidden rounded-2xl bg-navy-900/12 sm:grid-cols-2 lg:grid-cols-4">
-            {values.map((v, i) => (
-              <Reveal as="li" key={v.title} delay={i * 0.08} className="group bg-paper p-8 transition-colors duration-200 hover:bg-navy-900 lg:p-10">
-                <span className="text-xs font-semibold tracking-[0.2em] text-azure-strong transition-colors duration-200 group-hover:text-sky">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <h3 className="mt-10 text-2xl font-medium text-navy-900 transition-colors duration-200 group-hover:text-paper">{v.title}</h3>
-                <p className="mt-4 leading-relaxed text-muted transition-colors duration-200 group-hover:text-paper/70">{v.text}</p>
-              </Reveal>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* Persönliche Betreuung & Qualitätsanspruch */}
-      <section className="relative overflow-hidden bg-navy-950 py-24 text-paper lg:py-36">
-        <div aria-hidden className="grid-lines absolute inset-0 opacity-50" />
-        <div className="container-x relative grid gap-16 lg:grid-cols-12">
-          <div className="lg:col-span-5">
-            <SectionIntro dark eyebrow="Persönliche Betreuung" title={["Ein Ansprechpartner.", "Vom ersten Gespräch an."]} />
-            <Reveal delay={0.1}>
-              <p className="mt-8 max-w-md leading-relaxed text-paper/65">
-                Bei uns landen Sie nicht in einer Warteschleife. Sie sprechen mit den Menschen, die Ihre Anlage planen und einbauen –
-                und die auch danach für Sie erreichbar sind.
-              </p>
-            </Reveal>
-          </div>
-          <ol className="grid gap-px overflow-hidden rounded-2xl bg-paper/10 sm:grid-cols-2 lg:col-span-7">
-            {[
-              ["Zuhören", "Wir klären zuerst, was Ihnen wichtig ist: Komfort, Kosten, Gestaltung oder Zeitplan."],
-              ["Ehrlich beraten", "Wenn eine Lösung für Ihr Gebäude nicht sinnvoll ist, sagen wir das – und zeigen die Alternative."],
-              ["Transparent planen", "Angebote, die man versteht: klar gegliedert, nachvollziehbar, ohne versteckte Positionen."],
-              ["Dranbleiben", "Nach der Inbetriebnahme sind wir für Wartung, Fragen und schnelle Hilfe weiter für Sie da."],
-            ].map(([t, d], i) => (
-              <Reveal as="li" key={t} delay={i * 0.05} className="bg-navy-950/80 p-8 lg:p-10">
-                <span className="hud text-sky">{String(i + 1).padStart(2, "0")}</span>
-                <h3 className="mt-8 text-2xl font-medium">{t}</h3>
-                <p className="mt-3 leading-relaxed text-paper/60">{d}</p>
-              </Reveal>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      <section className="bg-paper py-24 lg:py-36">
+      <section className="bg-kalk py-24 lg:py-32">
         <div className="container-x grid gap-12 lg:grid-cols-12">
-          <div className="lg:col-span-4">
-            <SectionIntro eyebrow="Qualitätsanspruch" title={["Woran Sie", "gute Arbeit erkennen."]} />
+          <SectionHeading title="Wofür wir stehen." className="lg:col-span-4" />
+          <div className="lg:col-span-8">
+            <DefList items={VALUES} />
           </div>
-          <ul className="lg:col-span-7 lg:col-start-6">
-            {[
-              ["Planung vor Montage", "Heizlast, Wasserbedarf, Luftmengen: Wir rechnen, bevor wir bohren."],
-              ["Markenkomponenten", "Bewährte Hersteller mit langfristiger Ersatzteilversorgung."],
-              ["Saubere Dokumentation", "Sie erhalten nachvollziehbare Unterlagen zu Ihrer Anlage und ihren Einstellungen."],
-              ["Einweisung inklusive", "Wir erklären Ihnen Ihre Anlage so, dass Sie sie im Alltag sicher bedienen können."],
-            ].map(([t, d], i) => (
-              <Reveal as="li" key={t} delay={0.04} className="grid grid-cols-[3rem_1fr] gap-4 border-t border-navy-900/12 py-8 last:border-b sm:grid-cols-[4rem_1fr]">
-                <span className="hud pt-2 text-azure-strong">{String(i + 1).padStart(2, "0")}</span>
-                <div>
-                  <h3 className="text-2xl font-medium tracking-tight text-navy-900">{t}</h3>
-                  <p className="mt-2 max-w-lg leading-relaxed text-muted">{d}</p>
-                </div>
-              </Reveal>
-            ))}
-          </ul>
         </div>
       </section>
 
-      {/* Region */}
-      <section className="bg-paper pb-24 lg:pb-36">
+      <section className="bg-graphite py-24 text-on-dark lg:py-32">
+        <div className="container-x grid gap-12 lg:grid-cols-12">
+          <SectionHeading
+            dark
+            title="Ein Ansprechpartner. Vom ersten Gespräch an."
+            text="Bei uns landen Sie nicht in einer Warteschleife. Sie sprechen mit den Menschen, die Ihre Anlage planen und einbauen – und die auch danach für Sie erreichbar sind."
+            className="lg:col-span-5"
+          />
+          <div className="lg:col-span-7">
+            <DefList items={CARE} dark />
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-kalk py-24 lg:py-32">
+        <div className="container-x grid gap-12 lg:grid-cols-12">
+          <SectionHeading title="Woran Sie gute Arbeit erkennen." className="lg:col-span-4" />
+          <div className="lg:col-span-8">
+            <DefList items={QUALITY} />
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-navy/10 bg-white py-24 lg:py-32">
         <div className="container-x grid items-end gap-10 lg:grid-cols-12">
-          <MaskReveal className="aspect-[16/10] rounded-2xl lg:col-span-7" direction="left">
+          <MaskReveal className="plan-frame aspect-[16/10] text-navy/40 lg:col-span-7" direction="left">
             <Picture name="wald" alt="Bewaldete Hügellandschaft unter hellem Himmel" sizes="(min-width: 1024px) 58vw, 100vw" />
           </MaskReveal>
-          <div className="lg:col-span-5">
-            <SectionIntro
-              eyebrow="Standort"
-              title={["Zuhause in", "der Region."]}
-              text={`Unser Sitz ist in ${site.city}. Von hier aus betreuen wir Privat- und Geschäftskunden in der Umgebung – mit kurzen Wegen und schneller Reaktionszeit.`}
-            />
-          </div>
+          <SectionHeading
+            title="Zuhause in der Region."
+            text={`Unser Sitz ist in ${site.city}. Von hier aus betreuen wir Privat- und Geschäftskunden in der Umgebung – mit kurzen Wegen und schneller Reaktionszeit.`}
+            className="lg:col-span-5"
+          />
         </div>
       </section>
 
       <ProcessSection />
-      <div className="h-16 bg-paper lg:h-24" />
-      <CtaSection title={["Lernen wir", "uns kennen."]} image="beton" />
-      <div className="h-16 bg-paper lg:h-24" />
+      <CtaSection title="Lernen wir uns kennen." image="beton" />
     </>
   );
 }

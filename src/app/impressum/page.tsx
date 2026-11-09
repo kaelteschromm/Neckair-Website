@@ -4,15 +4,15 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Impressum",
-  description: "Impressum der Neckair – Angaben gemäß § 5 DDG.",
+  description: "Impressum von NECKAIR – Angaben gemäß § 5 DDG.",
   alternates: { canonical: "/impressum/" },
 };
 
 export default function ImpressumPage() {
   return (
     <>
-      <PageHero eyebrow="Rechtliches" title={["Impressum"]} compact />
-      <section className="bg-paper py-20 lg:py-28">
+      <PageHero kicker="Rechtliches" title="Impressum" compact />
+      <section className="bg-kalk py-20 lg:py-28">
         <div className="container-x prose-legal max-w-3xl">
           <h2>Angaben gemäß § 5 DDG</h2>
           <p>

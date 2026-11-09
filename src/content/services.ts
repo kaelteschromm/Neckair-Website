@@ -1,31 +1,25 @@
 import type { ImageName } from "@/lib/images.generated";
-import type { LightMode } from "@/components/LightField";
-import type { SystemId } from "@/components/building/geometry";
 
-export type ServiceSlug = "heizung" | "sanitaer" | "klima" | "lueftung";
+export type ServiceSlug = "heizung" | "sanitaer" | "klima";
+/** Medium des Gewerks – bestimmt Farbe, Lichtstimmung und System im Gebäudemodell */
+export type Medium = "heat" | "water" | "cold";
 
 export interface Service {
   slug: ServiceSlug;
-  index: string;
   title: string;
-  /** Tonwert aus dem Logo: Wärme = Orange, Luft/Wasser = Blau */
-  tone: "warm" | "cool";
-  /** Akzent der Seite: Wärme (Orange), Wasser (Himmelblau), Kühle (Eisblau), Luft (Türkis) */
-  accent: "ember" | "sky" | "ice" | "teal";
-  /** Lichtstimmung des Hero-Shaders */
-  light: LightMode;
-  /** System im Gebäudemodell */
-  system: SystemId;
-  kicker: string;
-  headline: [string, string]; // zweiter Teil wird kursiv gesetzt
+  medium: Medium;
+  mediumLabel: string;
+  headline: string;
   teaser: string;
   intro: string;
   hero: ImageName;
+  heroAlt: string;
   detail: ImageName;
   detailAlt: string;
-  heroAlt: string;
   seoTitle: string;
   seoDescription: string;
+  drawingTitle: string;
+  drawingText: string;
   offers: { title: string; text: string }[];
   benefits: string[];
   audiences: { private: string; business: string };
@@ -35,15 +29,11 @@ export interface Service {
 export const services: Record<ServiceSlug, Service> = {
   heizung: {
     slug: "heizung",
-    index: "01",
     title: "Heizung",
-    tone: "warm",
-    accent: "ember",
-    light: "heat",
-    system: "heizung",
-    kicker: "Wärme",
-    headline: ["Wärme, die", "mitdenkt."],
-    teaser: "Wärmepumpen, Flächenheizung und Modernisierung – effizient geplant für Bestand und Neubau.",
+    medium: "heat",
+    mediumLabel: "Wärme",
+    headline: "Wärme, die mitdenkt.",
+    teaser: "Wärmepumpen, Flächenheizung und Modernisierung – geplant nach Heizlast, nicht nach Faustformel.",
     intro:
       "Ein Heizsystem ist nur so gut wie seine Planung. Wir betrachten Gebäude, Wärmebedarf und Nutzung als Ganzes und entwickeln daraus eine Lösung, die leise arbeitet, Energie spart und über Jahre zuverlässig bleibt.",
     hero: "haus-am-wald",
@@ -52,60 +42,60 @@ export const services: Record<ServiceSlug, Service> = {
     detailAlt: "Verlegte Rohre einer Fußbodenheizung vor dem Estrich",
     seoTitle: "Heizung & Wärmepumpen",
     seoDescription:
-      "Wärmepumpen, Fußbodenheizung, Heizungsmodernisierung und hydraulischer Abgleich von Neckair – geplant für Bestand und Neubau.",
+      "Wärmepumpen, Flächenheizung, Heizungsmodernisierung und hydraulischer Abgleich von NECKAIR – geplant für Neubau und Bestand.",
+    drawingTitle: "Vom Außengerät bis in den Estrich",
+    drawingText:
+      "Die Wärmepumpe entzieht der Außenluft Energie. Ein Speicher puffert sie, der Verteiler verteilt sie auf die Heizkreise, und die Flächenheizung gibt sie gleichmäßig an den Raum ab – bei niedriger Vorlauftemperatur.",
     offers: [
-      { title: "Wärmepumpen", text: "Luft-Wasser- und Sole-Wasser-Wärmepumpen, dimensioniert nach Heizlastberechnung statt nach Faustformel." },
+      { title: "Wärmepumpen", text: "Luft-Wasser- und Sole-Wasser-Wärmepumpen, dimensioniert nach Heizlastberechnung." },
       { title: "Flächenheizung", text: "Fußboden- und Wandheizung für gleichmäßige Wärme bei niedrigen Vorlauftemperaturen." },
       { title: "Modernisierung", text: "Austausch alter Kessel, Hybridlösungen und schrittweise Umstellung auf erneuerbare Wärme." },
-      { title: "Neubau & Bestand", text: "Im Neubau planen wir die Heizung von Anfang an mit, im Bestand finden wir den passenden Weg für vorhandene Heizflächen." },
-      { title: "Hydraulischer Abgleich", text: "Jeder Raum bekommt genau die Wärme, die er braucht – messbar effizienter und leiser." },
-      { title: "Regelung & Smart Home", text: "Moderne Regelungstechnik, die sich Ihrem Alltag anpasst und per App bedienbar ist." },
-      { title: "Wartung", text: "Regelmäßige Inspektion für sichere, effiziente Anlagen und lange Lebensdauer." },
+      { title: "Neubau und Bestand", text: "Im Neubau planen wir von Anfang an mit, im Bestand finden wir den passenden Weg für vorhandene Heizflächen." },
+      { title: "Hydraulischer Abgleich", text: "Jeder Raum bekommt genau die Wärme, die er braucht – effizienter und leiser." },
+      { title: "Wartung und Service", text: "Regelmäßige Inspektion für sichere, effiziente Anlagen und eine lange Lebensdauer." },
     ],
-    benefits: ["Heizlast- und Bedarfsanalyse vor Ort", "Unterstützung bei technischen Nachweisen für Förderprogramme", "Ein Ansprechpartner von der Planung bis zur Wartung"],
+    benefits: ["Heizlast- und Bedarfsanalyse vor Ort", "Technische Angaben für Förderanträge", "Ein Ansprechpartner von der Planung bis zur Wartung"],
     audiences: {
-      private: "Für Einfamilienhäuser, Doppelhäuser und Wohnungen – ob Neubau oder Sanierung im Bestand.",
+      private: "Für Einfamilienhäuser, Doppelhäuser und Wohnungen – im Neubau wie in der Sanierung.",
       business: "Für Mehrfamilienhäuser, Büros und Gewerbeobjekte mit höherem Wärmebedarf und mehreren Heizkreisen.",
     },
     faq: [
       { q: "Funktioniert eine Wärmepumpe auch im Altbau?", a: "In vielen Fällen ja. Entscheidend sind Wärmebedarf, Heizflächen und Vorlauftemperatur. Wir prüfen das vor Ort und sagen Ihnen ehrlich, ob und unter welchen Voraussetzungen es sinnvoll ist." },
-      { q: "Wie lange dauert ein Heizungstausch?", a: "Der Austausch selbst dauert meist wenige Tage. Den genauen Ablauf stimmen wir vorab mit Ihnen ab, damit Sie möglichst kurz ohne Wärme sind." },
+      { q: "Wie lange dauert ein Heizungstausch?", a: "Der Austausch selbst dauert meist wenige Tage. Den Ablauf stimmen wir vorab mit Ihnen ab, damit Sie möglichst kurz ohne Wärme sind." },
       { q: "Helfen Sie bei der Förderung?", a: "Wir liefern die technischen Angaben und Nachweise, die für Förderanträge benötigt werden, und beraten Sie zu den Anforderungen an die Anlage." },
     ],
   },
   sanitaer: {
     slug: "sanitaer",
-    index: "02",
-    title: "Sanitär",
-    tone: "cool",
-    accent: "sky",
-    light: "water",
-    system: "wasser",
-    kicker: "Wasser",
-    headline: ["Bäder mit", "Haltung."],
-    teaser: "Badgestaltung, Trinkwasserhygiene und Warmwasser – langlebig, normgerecht und schön.",
+    title: "Sanitär & Trinkwasser",
+    medium: "water",
+    mediumLabel: "Wasser",
+    headline: "Wasser in seiner besten Form.",
+    teaser: "Bäder mit klarer Linie und Trinkwasserinstallationen, die hygienisch bleiben – vom Hausanschluss bis zur Armatur.",
     intro:
-      "Wasser ist das sensibelste Medium im Haus. Wir planen Bäder und Trinkwasserinstallationen mit Sorgfalt im Detail: hygienisch einwandfrei, durchdacht in der Nutzung und mit Materialien, die auch nach Jahren noch überzeugen.",
+      "Wasser ist das sensibelste Medium im Haus. Wir planen Bäder und Trinkwasserinstallationen mit Sorgfalt im Detail: hygienisch einwandfrei, durchdacht in der Nutzung und mit Materialien, die auch nach Jahren überzeugen.",
     hero: "armatur-wasser",
     heroAlt: "Moderne Edelstahl-Armatur, aus der Wasser in ein weißes Becken fließt",
     detail: "waschtisch-weiss",
     detailAlt: "Weißer Aufsatzwaschtisch auf einer hellen Holzplatte",
-    seoTitle: "Sanitär & Badgestaltung",
+    seoTitle: "Sanitär & Trinkwasser",
     seoDescription:
-      "Badplanung, barrierearme Bäder, Trinkwasserinstallation und Warmwasserbereitung von Neckair – hygienisch, langlebig und hochwertig.",
+      "Badgestaltung, Badsanierung, Trinkwasserhygiene, Warmwasser und Sanitärinstallation von NECKAIR – hygienisch, langlebig und hochwertig.",
+    drawingTitle: "Der Weg des Wassers",
+    drawingText:
+      "Am Hausanschluss beginnt die Verantwortung für die Trinkwasserqualität. Filter, kurze Leitungswege und eine Zirkulation, die warmes Wasser in Bewegung hält, sorgen dafür, dass es bis zur Armatur hygienisch bleibt.",
     offers: [
       { title: "Badgestaltung", text: "Vom ersten Grundriss bis zur fertigen Armatur – mit klarer Linie und durchdachten Details." },
       { title: "Badsanierung", text: "Aus dem alten Bad wird ein neues: koordiniert, sauber und in möglichst kurzer Bauzeit – auch barrierearm." },
       { title: "Trinkwasserhygiene", text: "Leitungsführung und Betrieb so, dass Wasser nicht stagniert und Temperaturen eingehalten werden." },
-      { title: "Sanitärinstallation", text: "Installation nach den anerkannten Regeln der Technik – für Neubau, Umbau und Sanierung." },
       { title: "Warmwasser", text: "Effiziente Warmwasserbereitung, abgestimmt auf Heizsystem und Bedarf." },
-      { title: "Wasseraufbereitung", text: "Filter und Enthärtung zum Schutz von Leitungen, Armaturen und Geräten." },
-      { title: "Leckageschutz", text: "Systeme, die Wasserschäden erkennen und die Zufuhr automatisch stoppen." },
+      { title: "Sanitärinstallation", text: "Installation nach den anerkannten Regeln der Technik – für Neubau, Umbau und Sanierung." },
+      { title: "Wasseraufbereitung und Leckageschutz", text: "Filter, Enthärtung und Systeme, die Wasserschäden erkennen und die Zufuhr automatisch stoppen." },
     ],
-    benefits: ["Koordination der Gewerke rund ums Bad", "Saubere Baustelle und verlässliche Termine", "Hochwertige Markenprodukte mit Ersatzteilversorgung"],
+    benefits: ["Koordination der Gewerke rund ums Bad", "Saubere Baustelle und verlässliche Termine", "Markenprodukte mit langfristiger Ersatzteilversorgung"],
     audiences: {
       private: "Für das neue Familienbad, das Gäste-WC oder die altersgerechte Modernisierung.",
-      business: "Für Wohnanlagen, Praxen, Büros und Gewerbe – inklusive Trinkwasserhygiene im Betrieb.",
+      business: "Für Wohnanlagen, Praxen, Büros und Gewerbe – inklusive Trinkwasserhygiene im laufenden Betrieb.",
     },
     faq: [
       { q: "Wie läuft eine Badsanierung ab?", a: "Nach einem Termin vor Ort erstellen wir Planung und Angebot. Danach koordinieren wir die Arbeiten so, dass Ihr Bad in möglichst kurzer Zeit wieder nutzbar ist." },
@@ -114,81 +104,44 @@ export const services: Record<ServiceSlug, Service> = {
   },
   klima: {
     slug: "klima",
-    index: "03",
-    title: "Klima",
-    tone: "cool",
-    accent: "ice",
-    light: "climate",
-    system: "klima",
-    kicker: "Kühle",
-    headline: ["Kühle, die", "man nicht hört."],
-    teaser: "Split- und Multisplit-Systeme, Gewerbeklimatisierung und Kältetechnik mit Fachkompetenz.",
+    title: "Klima & Kälte",
+    medium: "cold",
+    mediumLabel: "Kälte",
+    headline: "Kühle, die man nicht hört.",
+    teaser: "Split- und Multisplit-Systeme, Gewerbeklimatisierung und Kältetechnik – leise, effizient und fachgerecht.",
     intro:
-      "Gutes Raumklima fällt nicht auf – es ist einfach da. Wir planen Klimaanlagen, die leise und effizient arbeiten, sich harmonisch in die Architektur einfügen und im Winter auf Wunsch auch heizen.",
+      "Gutes Raumklima fällt nicht auf – es ist einfach da. Wir planen Klimaanlagen und Kältetechnik, die leise und effizient arbeiten, sich in die Architektur einfügen und im Winter auf Wunsch auch heizen.",
     hero: "fassade-himmel",
     heroAlt: "Weiße, rasterartige Gebäudefassade vor blauem Himmel",
     detail: "wohnzimmer",
     detailAlt: "Helles Wohnzimmer mit blauem Sofa, Parkett und großen Fenstern",
-    seoTitle: "Klimaanlagen & Kältetechnik",
+    seoTitle: "Klima & Kälte",
     seoDescription:
-      "Split- und Multisplit-Klimaanlagen, Gewerbeklimatisierung, Serverraumkühlung und Wartung von Neckair – leise, effizient, fachgerecht.",
+      "Split- und Multisplit-Klimaanlagen, Gewerbeklimatisierung, Kältetechnik und Wartung von NECKAIR – leise, effizient, fachgerecht.",
+    drawingTitle: "Der Kältekreislauf",
+    drawingText:
+      "Im Verdampfer nimmt das Kältemittel Wärme aus dem Raum auf. Der Verdichter hebt es auf ein höheres Druck- und Temperaturniveau, im Verflüssiger gibt es die Wärme draußen wieder ab, und das Expansionsventil schließt den Kreis.",
     offers: [
       { title: "Split-Klimaanlagen", text: "Für einzelne Räume wie Schlafzimmer, Homeoffice oder Dachgeschoss." },
       { title: "Multisplit-Systeme", text: "Ein Außengerät, mehrere Räume – individuell regelbar und dezent in der Optik." },
-      { title: "Kühlen & Heizen", text: "Moderne Klimageräte arbeiten als Wärmepumpe und heizen effizient in der Übergangszeit." },
-      { title: "Gewerbe & Büro", text: "Klimatisierung für Büroflächen, Praxen, Ladenlokale und Besprechungsräume." },
-      { title: "Kältetechnik", text: "Planung und fachgerechte Arbeiten am Kältekreis – von der Einzelraumkühlung bis zur Serverraumkühlung." },
-      { title: "Wartung & Dichtheit", text: "Inspektion, Reinigung und Dichtheitskontrollen nach den geltenden Vorgaben." },
+      { title: "Kühlen und Heizen", text: "Moderne Klimageräte arbeiten als Wärmepumpe und heizen effizient in der Übergangszeit." },
+      { title: "Gewerbeklimatisierung", text: "Klimatisierung für Büroflächen, Praxen, Ladenlokale und Besprechungsräume." },
+      { title: "Kältetechnik", text: "Planung und fachgerechte Arbeiten am Kältekreis – bis hin zur Kühlung von Serverräumen." },
+      { title: "Wartung und Dichtheit", text: "Inspektion, Reinigung und Dichtheitskontrollen nach den geltenden Vorgaben." },
     ],
     benefits: ["Fachgerechte Arbeiten am Kältekreis", "Leise Geräte und durchdachte Positionierung", "Saubere Leitungsführung ohne sichtbare Kompromisse"],
     audiences: {
-      private: "Für erholsame Nächte im Sommer, ein produktives Homeoffice und angenehme Wohnräume.",
+      private: "Für erholsame Nächte im Sommer, ein konzentriertes Homeoffice und angenehme Wohnräume.",
       business: "Für Arbeitsplätze, Kundenbereiche und Technikräume mit verlässlichen Temperaturen.",
     },
     faq: [
       { q: "Wie laut ist eine Klimaanlage?", a: "Moderne Innengeräte sind im Flüstermodus kaum hörbar. Für das Außengerät wählen wir den Standort so, dass weder Sie noch Ihre Nachbarn gestört werden." },
       { q: "Kann eine Klimaanlage auch heizen?", a: "Ja. Split-Geräte arbeiten nach dem Wärmepumpenprinzip und können in der Übergangszeit sehr effizient heizen." },
-      { q: "Wie oft sollte eine Klimaanlage gewartet werden?", a: "Wir empfehlen eine jährliche Wartung mit Reinigung der Filter und Wärmetauscher. Das hält die Luft hygienisch und die Anlage effizient." },
-    ],
-  },
-  lueftung: {
-    slug: "lueftung",
-    index: "04",
-    title: "Lüftung",
-    tone: "cool",
-    accent: "teal",
-    light: "vent",
-    system: "lueftung",
-    kicker: "Luft",
-    headline: ["Frische Luft,", "ganz ohne Fenster."],
-    teaser: "Kontrollierte Wohnraumlüftung mit Wärmerückgewinnung und Lüftungskonzepte für Gewerbe.",
-    intro:
-      "Dichte, energieeffiziente Gebäude brauchen einen planbaren Luftaustausch. Unsere Lüftungslösungen sorgen für frische, gefilterte Luft, schützen die Bausubstanz vor Feuchtigkeit und halten die Wärme im Haus.",
-    hero: "wald",
-    heroAlt: "Weiter Blick über bewaldete Hügel unter einem hellen Himmel",
-    detail: "decke-weiss",
-    detailAlt: "Lichtdurchflutete, weiße Dachkonstruktion mit Lamellen",
-    seoTitle: "Lüftung & Wohnraumlüftung",
-    seoDescription:
-      "Kontrollierte Wohnraumlüftung mit Wärmerückgewinnung, dezentrale Lüftung, Lüftungskonzepte nach DIN 1946-6 und Gewerbelüftung von Neckair.",
-    offers: [
-      { title: "Zentrale Wohnraumlüftung", text: "Kontrollierte Be- und Entlüftung mit Wärmerückgewinnung für das ganze Haus." },
-      { title: "Wärmerückgewinnung", text: "Die Wärme der Abluft geht an die frische Zuluft über – die Luft ist frisch, die Wärme bleibt im Haus." },
-      { title: "Dezentrale Lüftung", text: "Einzelraumlösungen, ideal für die Sanierung ohne aufwendige Kanalführung." },
-      { title: "Lüftungskonzept", text: "Bewertung des Lüftungsbedarfs nach DIN 1946-6 für Neubau und Modernisierung." },
-      { title: "Gewerbelüftung", text: "Lüftungsanlagen für Büros, Praxen und Gewerbeflächen mit hoher Belegung." },
-      { title: "Filter & Hygiene", text: "Filterwechsel, Reinigung und Inspektion für dauerhaft saubere Luft." },
-    ],
-    benefits: ["Weniger Pollen und Feinstaub dank Filterung", "Schutz vor Feuchtigkeit und Schimmel", "Wärmerückgewinnung senkt den Heizbedarf"],
-    audiences: {
-      private: "Für Neubauten, sanierte Altbauten und alle, die Wert auf gesunde Raumluft legen.",
-      business: "Für Arbeitsräume, in denen konzentriert gearbeitet wird und viele Menschen zusammenkommen.",
-    },
-    faq: [
-      { q: "Brauche ich in meinem Haus eine Lüftungsanlage?", a: "Nach einer energetischen Sanierung oder im Neubau ist ein Lüftungskonzept oft erforderlich. Wir prüfen, ob Lüftung durch Fenster genügt oder eine Anlage sinnvoll ist." },
-      { q: "Darf ich die Fenster trotzdem öffnen?", a: "Natürlich. Die Anlage sorgt für den Grundluftwechsel – Fenster öffnen bleibt jederzeit möglich, ist aber nicht mehr nötig." },
+      { q: "Wie oft sollte eine Klimaanlage gewartet werden?", a: "Wir empfehlen eine jährliche Wartung mit Reinigung von Filtern und Wärmetauschern. Das hält die Luft hygienisch und die Anlage effizient." },
     ],
   },
 };
 
 export const serviceList = Object.values(services);
+
+export const MEDIUM_COLOR: Record<Medium, string> = { heat: "#f07e26", water: "#1e88e5", cold: "#8fd3e8" };

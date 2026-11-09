@@ -4,15 +4,15 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Datenschutz",
-  description: "Datenschutzerklärung der Neckair.",
+  description: "Datenschutzerklärung von NECKAIR.",
   alternates: { canonical: "/datenschutz/" },
 };
 
 export default function DatenschutzPage() {
   return (
     <>
-      <PageHero eyebrow="Rechtliches" title={["Datenschutz"]} compact />
-      <section className="bg-paper py-20 lg:py-28">
+      <PageHero kicker="Rechtliches" title="Datenschutz" compact />
+      <section className="bg-kalk py-20 lg:py-28">
         <div className="container-x prose-legal max-w-3xl">
           <p>
             Der Schutz Ihrer persönlichen Daten ist uns wichtig. Diese Website verzichtet bewusst auf Tracking, Analyse-Tools, Werbe-Cookies und

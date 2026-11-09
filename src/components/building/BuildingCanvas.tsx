@@ -2,60 +2,90 @@
 
 import { useEffect, useRef } from "react";
 import { useReduceMotion } from "@/lib/useReduceMotion";
-import { buildScene, SYSTEM_COLORS, type SystemId, type VentMode, pointAt } from "./geometry";
+import { pointer, ensurePointerTracking } from "@/lib/pointer";
+import { buildScene, pointAt, SYSTEM_RGB, UPPER_Y, type SystemId, type V } from "./geometry";
 
 /**
- * „Das intelligente Gebäude“ – echte 3D-Projektion (Kamera, Perspektive, Tiefenstaffelung)
- * auf einem 2D-Canvas, ohne 3D-Bibliothek. Ein Haus als feines Linienmodell, darin vier
- * technische Systeme als Leitungen, durch die Partikel fließen.
+ * Steuerwerte der Szene. Werden von außen (Scroll, Klick, Intro) in ein Ref geschrieben
+ * und jedes Frame gelesen – kein React-Rerender pro Frame (react-best-practices:
+ * rerender-use-ref-transient-values).
+ */
+export interface SceneControl {
+  /** Kamerawinkel um die Hochachse (rad) */
+  yaw: number;
+  /** Kameraabstand als Faktor (1 = Standard, kleiner = näher) */
+  dolly: number;
+  /** Explosionsansicht 0…1: Obergeschoss hebt sich ab */
+  explode: number;
+  /** Deckkraft der Gebäudehülle 0…1 */
+  shell: number;
+  /** Gezeichneter Anteil je System 0…1 */
+  draw: Record<SystemId, number>;
+  /** Hervorgehobenes System, „all“ = alle gleichwertig, „none“ = nur Gebäude */
+  active: SystemId | "all" | "none";
+}
+
+export const defaultControl = (): SceneControl => ({
+  yaw: -0.7,
+  dolly: 1,
+  explode: 0,
+  shell: 1,
+  draw: { heizung: 1, wasser: 1, klima: 1 },
+  active: "all",
+});
+
+const THEME = {
+  dark: { line: "214,228,236", lineA: 0.42, faceRGB: "214,228,236", faceA: 0.075, glass: "rgba(143,211,232,0.06)", ground: 0.06, blend: "lighter" as GlobalCompositeOperation },
+  light: { line: "11,34,57", lineA: 0.55, faceRGB: "11,34,57", faceA: 0.05, glass: "rgba(30,136,229,0.06)", ground: 0.08, blend: "source-over" as GlobalCompositeOperation },
+};
+
+const IDS: SystemId[] = ["heizung", "wasser", "klima"];
+
+/**
+ * NECKAIR-Gebäude: eigene 3D-Projektion auf einem 2D-Canvas (keine 3D-Bibliothek).
+ * Schattierte Baukörper (Maler-Algorithmus), Glas, Leitungsführung der drei Systeme mit
+ * fließenden Partikeln. Optional anklickbar: Klick nahe einer Leitung wählt das System.
  *
- * Zweck (Emil Kowalski): Erklärung – zeigt, wo Heizung, Wasser, Klima und Lüftung im Gebäude
- * arbeiten. Gesehen wird es selten (Marketing), daher darf die Bewegung ruhig und länger sein.
- *
- * - `active`: hervorgehobenes System; die übrigen treten zurück (weicher Übergang per Dämpfung,
- *   also jederzeit unterbrechbar, kein Neustart).
- * - `yawRef`: Kamerawinkel von außen (z. B. an den Scroll gekoppelt).
- * - Pausiert außerhalb des Sichtbereichs; reduzierte Bewegung: Partikel stehen still.
+ * Performance: pausiert außerhalb des Sichtbereichs, DPR begrenzt, ein gemeinsamer Zeiger-Listener.
+ * Reduzierte Bewegung: keine Partikelbewegung, kein Kamerapendel.
  */
 export function BuildingCanvas({
-  active,
-  yawRef,
-  autoOrbit = false,
-  ventMode = "wrg",
+  control,
+  theme = "dark",
+  zoom = 1,
   offsetX = 0,
   offsetY = 0,
-  zoom = 1,
+  autoOrbit = false,
+  onPick,
   className = "",
 }: {
-  active: SystemId | "all";
-  yawRef?: React.RefObject<number>;
-  autoOrbit?: boolean;
-  ventMode?: VentMode;
-  offsetX?: number;
-  /** vertikale Verschiebung (Anteil der Höhe, negativ = nach oben) */
-  offsetY?: number;
+  control: React.RefObject<SceneControl>;
+  theme?: "dark" | "light";
   zoom?: number;
+  offsetX?: number;
+  offsetY?: number;
+  autoOrbit?: boolean;
+  onPick?: (id: SystemId) => void;
   className?: string;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const reduce = useReduceMotion();
-  const activeRef = useRef(active);
-  const ventRef = useRef(ventMode);
-  const offsetRef = useRef(offsetX);
-  activeRef.current = active;
-  ventRef.current = ventMode;
-  offsetRef.current = offsetX;
+  const pickRef = useRef(onPick);
+  pickRef.current = onPick;
+  const pickable = Boolean(onPick);
 
   useEffect(() => {
+    ensurePointerTracking();
     const canvas = ref.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-
+    const T = THEME[theme];
+    const RGB = SYSTEM_RGB[theme];
     const scene = buildScene();
-    let raf = 0;
     const coarse = window.matchMedia("(pointer: coarse)").matches;
     const dpr = Math.min(window.devicePixelRatio || 1, coarse ? 1.5 : 2);
+    let raf = 0;
     let W = 0;
     let H = 0;
     const resize = () => {
@@ -65,63 +95,42 @@ export function BuildingCanvas({
       canvas.height = Math.round(H * dpr);
     };
     resize();
-    // Größenänderung leert den Canvas – im Pausenzustand sofort ein Bild nachzeichnen
-    const ro = new ResizeObserver(() => {
-      resize();
-      if (!raf) frame(performance.now());
-    });
-    ro.observe(canvas);
 
-    // Sichtbarkeit je System, gedämpft zum Ziel (interruptible, kein Keyframe)
-    const level: Record<SystemId | "exhaust", number> = { heizung: 0, wasser: 0, klima: 0, lueftung: 0, exhaust: 0 };
-    const pointer = { x: 0, y: 0, tx: 0, ty: 0 };
-    const onMove = (e: PointerEvent) => {
-      const r = canvas.getBoundingClientRect();
-      pointer.tx = ((e.clientX - r.left) / r.width - 0.5) * 2;
-      pointer.ty = ((e.clientY - r.top) / r.height - 0.5) * 2;
-    };
-    if (!coarse) window.addEventListener("pointermove", onMove, { passive: true });
-
-    let yawSmooth = yawRef?.current ?? -0.55;
-    let visible = true;
+    const level: Record<SystemId, number> = { heizung: 0.8, wasser: 0.8, klima: 0.8 };
+    let hover: SystemId | null = null;
+    const smooth = { x: 0, y: 0 };
+    const hits: Record<SystemId, [number, number][]> = { heizung: [], wasser: [], klima: [] };
     const t0 = performance.now();
 
     const frame = (now: number) => {
+      const c = control.current;
+      if (!c) return;
       const t = reduce ? 0 : (now - t0) / 1000;
-      const a = activeRef.current;
-      const vent = ventRef.current;
-      const k = reduce ? 1 : 0.07; // Dämpfung pro Frame
-      for (const id of ["heizung", "wasser", "klima", "lueftung"] as SystemId[]) {
-        const target = a === "all" ? 0.75 : a === id ? 1 : 0.07;
-        const ventOff = id === "lueftung" && a === "lueftung" && vent === "abluft" ? 0.15 : target;
-        level[id] += (ventOff - level[id]) * k;
+      const k = reduce ? 1 : 0.08;
+      for (const id of IDS) {
+        const target = c.active === "all" ? 0.85 : c.active === "none" ? 0 : c.active === id ? 1 : 0.1;
+        const h = hover === id && c.active !== id ? 0.25 : 0;
+        level[id] += (Math.min(1, target + h) - level[id]) * k;
       }
-      const exTarget = a === "lueftung" && vent !== "zuluft" ? 1 : a === "all" ? 0.5 : 0.05;
-      level.exhaust += (exTarget - level.exhaust) * k;
+      smooth.x += (pointer.x - smooth.x) * 0.05;
+      smooth.y += (pointer.y - smooth.y) * 0.05;
 
-      pointer.x += (pointer.tx - pointer.x) * 0.05;
-      pointer.y += (pointer.ty - pointer.y) * 0.05;
-
-      let yaw = yawRef?.current ?? -0.55;
-      if (autoOrbit && !reduce) yaw += Math.sin(t * 0.12) * 0.22;
-      yawSmooth += (yaw - yawSmooth) * (reduce ? 1 : 0.08);
-      const finalYaw = yawSmooth + pointer.x * 0.12;
-      const pitch = 0.42 + pointer.y * 0.05;
-
-      const cy = Math.cos(finalYaw), sy = Math.sin(finalYaw);
+      const yaw = c.yaw + (autoOrbit && !reduce ? Math.sin(t * 0.12) * 0.2 : 0) + smooth.x * 0.1;
+      const pitch = 0.44 + smooth.y * 0.04;
+      const cy = Math.cos(yaw), sy = Math.sin(yaw);
       const cp = Math.cos(pitch), sp = Math.sin(pitch);
-      const dist = 14 / zoom;
+      const dist = (14 / zoom) * c.dolly;
       const f = Math.min(W * 1.05, H * 1.35);
-      const cx = W * (0.5 + offsetRef.current);
+      const cx = W * (0.5 + offsetX);
       const cyScr = H * (0.52 + offsetY);
+      const lift = c.explode * 1.35;
 
-      // Weltpunkt → Bildschirm (Mittelpunkt des Hauses ≈ (0.3, 1.5, 0))
-      const proj = (x: number, y: number, z: number): [number, number, number] => {
-        x -= 0.3; y -= 1.5;
-        // Drehung um die Hochachse; zr > 0 = zur Kamera hin
+      const proj = (v: V): [number, number, number] => {
+        const x = v[0] - 0.3;
+        const y = v[1] + (v[1] >= UPPER_Y - 1e-3 ? lift : 0) - 1.5 - lift * 0.4;
+        const z = v[2];
         const x1 = x * cy + z * sy;
         const zr = -x * sy + z * cy;
-        // Kamera erhöht, blickt schräg nach unten: nahe Punkte liegen tiefer im Bild
         const y2 = y * cp - zr * sp;
         const d = dist - (zr * cp + y * sp);
         return [cx + (x1 / d) * f, cyScr - (y2 / d) * f, d];
@@ -132,79 +141,111 @@ export function BuildingCanvas({
       ctx.clearRect(0, 0, W, H);
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
-
-      // Glasflächen (sehr zart gefüllt)
       ctx.globalCompositeOperation = "source-over";
-      for (const quad of scene.glass) {
+
+      const seg = (p: V, q: V, rgb: string, a: number, w: number) => {
+        const A = proj(p), B = proj(q);
+        ctx.strokeStyle = `rgba(${rgb},${(a * depthAlpha((A[2] + B[2]) / 2)).toFixed(3)})`;
+        ctx.lineWidth = w;
         ctx.beginPath();
-        quad.forEach((v, i) => {
-          const [px, py] = proj(v[0], v[1], v[2]);
-          if (i === 0) ctx.moveTo(px, py);
-          else ctx.lineTo(px, py);
-        });
-        ctx.closePath();
-        ctx.fillStyle = "rgba(169,216,248,0.05)";
-        ctx.fill();
-      }
-
-      // Gelände-Raster und Baukörper
-      const strokeSegs = (segs: number[][][], rgb: string, alpha: number, width: number) => {
-        ctx.lineWidth = width;
-        for (const [p, q] of segs) {
-          const A = proj(p[0], p[1], p[2]);
-          const B = proj(q[0], q[1], q[2]);
-          ctx.strokeStyle = `rgba(${rgb},${(alpha * depthAlpha((A[2] + B[2]) / 2)).toFixed(3)})`;
-          ctx.beginPath();
-          ctx.moveTo(A[0], A[1]);
-          ctx.lineTo(B[0], B[1]);
-          ctx.stroke();
-        }
+        ctx.moveTo(A[0], A[1]);
+        ctx.lineTo(B[0], B[1]);
+        ctx.stroke();
       };
-      strokeSegs(scene.ground, "205,234,246", 0.07, 1);
-      strokeSegs(scene.structure, "205,234,246", 0.32, 1);
 
-      // Systeme: Leitungen, Geräte, fließende Partikel (additiv = Leuchten)
-      ctx.globalCompositeOperation = "lighter";
-      for (const sys of scene.systems) {
-        const lv = level[sys.level];
-        if (lv < 0.02) continue;
-        const rgb = SYSTEM_COLORS[sys.color];
-        strokeSegs(sys.equipment, rgb, 0.25 + 0.6 * lv, 1.2);
-        for (const path of sys.paths) {
-          ctx.lineWidth = 1.4;
-          ctx.strokeStyle = `rgba(${rgb},${(0.12 + 0.6 * lv).toFixed(3)})`;
+      for (const [p, q] of scene.ground) seg(p, q, T.line, T.ground, 1);
+
+      // Baukörper: Flächen von hinten nach vorne (Maler-Algorithmus)
+      if (c.shell > 0.01) {
+        const faces = scene.faces
+          .map((fc) => {
+            const P = fc.pts.map(proj);
+            return { P, d: P.reduce((s, p) => s + p[2], 0) / P.length, shade: fc.shade };
+          })
+          .sort((a, b) => b.d - a.d);
+        for (const fc of faces) {
           ctx.beginPath();
-          path.pts.forEach((v, i) => {
-            const [px, py] = proj(v[0], v[1], v[2]);
+          fc.P.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+          ctx.closePath();
+          ctx.fillStyle = `rgba(${T.faceRGB},${(T.faceA * fc.shade * c.shell).toFixed(3)})`;
+          ctx.fill();
+        }
+        for (const quad of scene.glass) {
+          ctx.beginPath();
+          quad.forEach((v, i) => {
+            const [px, py] = proj(v);
+            if (i) ctx.lineTo(px, py);
+            else ctx.moveTo(px, py);
+          });
+          ctx.closePath();
+          ctx.fillStyle = T.glass;
+          ctx.fill();
+        }
+      }
+      for (const [p, q] of scene.structure) seg(p, q, T.line, T.lineA * (0.55 + 0.45 * c.shell), 1);
+
+      ctx.globalCompositeOperation = T.blend;
+      for (const sys of scene.systems) {
+        const lv = level[sys.id];
+        const drawn = Math.max(0, Math.min(1, c.draw[sys.id]));
+        const rgb = RGB[sys.id];
+        const pts: [number, number][] = [];
+        if (lv > 0.02 && drawn > 0.001) {
+          for (const [p, q] of sys.equipment) seg(p, q, rgb, (0.2 + 0.65 * lv) * Math.min(1, drawn * 3), 1.1);
+        }
+        for (const path of sys.paths) {
+          const len = path.length * drawn;
+          if (len <= 0.001) continue;
+          ctx.lineWidth = theme === "light" ? 1.6 : 1.4;
+          ctx.strokeStyle = `rgba(${rgb},${(0.14 + 0.62 * lv).toFixed(3)})`;
+          ctx.beginPath();
+          for (let i = 0; i < path.pts.length; i++) {
+            if (path.cum[i] > len) {
+              const [px, py] = proj(pointAt(path, len));
+              ctx.lineTo(px, py);
+              break;
+            }
+            const [px, py] = proj(path.pts[i]);
+            pts.push([px, py]);
             if (i === 0) ctx.moveTo(px, py);
             else ctx.lineTo(px, py);
-          });
+          }
           ctx.stroke();
+
+          // Zeichenspitze, solange die Leitung entsteht
+          if (drawn < 0.999) {
+            const [hx, hy] = proj(pointAt(path, len));
+            ctx.fillStyle = `rgba(${rgb},0.9)`;
+            ctx.beginPath();
+            ctx.arc(hx, hy, 2.4, 0, Math.PI * 2);
+            ctx.fill();
+          }
 
           if (lv < 0.15) continue;
           const spacing = 0.32;
-          const n = Math.max(2, Math.floor(path.length / spacing));
           const offset = (t * sys.speed) % spacing;
-          for (let i = 0; i < n; i++) {
-            const s = i * spacing + offset;
-            if (s > path.length) break;
-            const v = pointAt(path, s);
-            const [px, py, pz] = proj(v[0], v[1], v[2]);
+          for (let s = offset; s < len; s += spacing) {
+            const [px, py, pz] = proj(pointAt(path, s));
+            pts.push([px, py]);
             const da = depthAlpha(pz) * lv;
-            ctx.fillStyle = `rgba(${rgb},${(0.14 * da).toFixed(3)})`;
-            ctx.beginPath();
-            ctx.arc(px, py, 4.2, 0, Math.PI * 2);
-            ctx.fill();
+            if (theme === "dark") {
+              ctx.fillStyle = `rgba(${rgb},${(0.14 * da).toFixed(3)})`;
+              ctx.beginPath();
+              ctx.arc(px, py, 4.2, 0, Math.PI * 2);
+              ctx.fill();
+            }
             ctx.fillStyle = `rgba(${rgb},${(0.95 * da).toFixed(3)})`;
             ctx.beginPath();
-            ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+            ctx.arc(px, py, theme === "dark" ? 1.5 : 1.7, 0, Math.PI * 2);
             ctx.fill();
           }
         }
+        hits[sys.id] = pts;
       }
       ctx.globalCompositeOperation = "source-over";
     };
 
+    let visible = true;
     const loop = (now: number) => {
       frame(now);
       if (visible && !document.hidden) raf = requestAnimationFrame(loop);
@@ -212,6 +253,11 @@ export function BuildingCanvas({
     };
     raf = requestAnimationFrame(loop);
 
+    const ro = new ResizeObserver(() => {
+      resize();
+      if (!raf) frame(performance.now());
+    });
+    ro.observe(canvas);
     const io = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting;
       if (visible && !raf) raf = requestAnimationFrame(loop);
@@ -222,14 +268,50 @@ export function BuildingCanvas({
     };
     document.addEventListener("visibilitychange", onVis);
 
+    // Klick-/Hover-Erkennung: nächstgelegene Leitung innerhalb von 28 px
+    const nearest = (e: PointerEvent): SystemId | null => {
+      const r = canvas.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      let best: SystemId | null = null;
+      let bd = 28 * 28;
+      for (const id of IDS) {
+        for (const [px, py] of hits[id]) {
+          const d = (px - x) ** 2 + (py - y) ** 2;
+          if (d < bd) {
+            bd = d;
+            best = id;
+          }
+        }
+      }
+      return best;
+    };
+    const onMove = (e: PointerEvent) => {
+      hover = nearest(e);
+      canvas.style.cursor = hover ? "pointer" : "";
+    };
+    const onLeave = () => {
+      hover = null;
+    };
+    const onDown = (e: PointerEvent) => {
+      const id = nearest(e);
+      if (id) pickRef.current?.(id);
+    };
+    if (pickable) {
+      canvas.addEventListener("pointermove", onMove);
+      canvas.addEventListener("pointerleave", onLeave);
+      canvas.addEventListener("pointerdown", onDown);
+    }
+
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
       io.disconnect();
-      window.removeEventListener("pointermove", onMove);
       document.removeEventListener("visibilitychange", onVis);
+      canvas.removeEventListener("pointermove", onMove);
+      canvas.removeEventListener("pointerleave", onLeave);
+      canvas.removeEventListener("pointerdown", onDown);
     };
-  }, [reduce, autoOrbit, yawRef, zoom, offsetY]);
+  }, [reduce, theme, zoom, offsetX, offsetY, autoOrbit, control, pickable]);
 
   return <canvas ref={ref} aria-hidden className={`block h-full w-full ${className}`} />;
 }

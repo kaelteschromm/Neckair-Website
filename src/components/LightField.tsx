@@ -14,8 +14,8 @@ import { useReduceMotion } from "@/lib/useReduceMotion";
  * bei verstecktem Tab; ohne WebGL wird einfach nichts gezeichnet (das Foto bleibt).
  * Reduzierte Bewegung: ein einziges, ruhendes Bild.
  */
-export type LightMode = "home" | "heat" | "water" | "climate" | "vent";
-const MODE_ID: Record<LightMode, number> = { home: 0, heat: 1, water: 2, climate: 3, vent: 4 };
+export type LightMode = "home" | "heat" | "water" | "climate";
+const MODE_ID: Record<LightMode, number> = { home: 0, heat: 1, water: 2, climate: 3 };
 
 const VERT = `attribute vec2 p; void main(){ gl_Position = vec4(p, 0.0, 1.0); }`;
 

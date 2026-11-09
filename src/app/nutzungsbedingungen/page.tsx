@@ -4,7 +4,7 @@ import { PageHero } from "@/components/sections";
 // Text unverändert von der bisherigen Website übernommen (Stand: Januar 2025).
 export const metadata: Metadata = {
   title: "Nutzungsbedingungen",
-  description: "Nutzungsbedingungen der Website von Neckair.",
+  description: "Nutzungsbedingungen der Website von NECKAIR.",
   alternates: { canonical: "/nutzungsbedingungen/" },
 };
 
@@ -46,8 +46,8 @@ const sections: [string, string][] = [
 export default function Page() {
   return (
     <>
-      <PageHero eyebrow="Rechtliches" title={["Nutzungsbedingungen"]} compact />
-      <section className="bg-paper py-20 lg:py-28">
+      <PageHero kicker="Rechtliches" title="Nutzungsbedingungen" compact />
+      <section className="bg-kalk py-20 lg:py-28">
         <div className="container-x prose-legal max-w-3xl">
           {sections.map(([h, t]) => (
             <div key={h}>

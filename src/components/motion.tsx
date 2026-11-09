@@ -1,113 +1,28 @@
 "use client";
 
-import {
-  motion,
-  useScroll,
-  useTransform,
-  type MotionValue,
-} from "motion/react";
+import { motion } from "motion/react";
+import type { ReactNode } from "react";
 import { useReduceMotion } from "@/lib/useReduceMotion";
-import { useRef, type ReactNode, type ElementType } from "react";
 
-// Kurven aus der Motion-Sprache (siehe globals.css): --ease-out und --ease-in-out
+// Kurven der Motion-Sprache (siehe globals.css): --ease-out und --ease-in-out
 export const EASE = [0.23, 1, 0.32, 1] as const;
 export const EASE_IN_OUT = [0.77, 0, 0.175, 1] as const;
 
-/** Sanftes Einblenden beim Scrollen. */
-export function Reveal({
-  children,
-  delay = 0,
-  y = 16,
-  className,
-  as = "div",
-}: {
-  children: ReactNode;
-  delay?: number;
-  y?: number;
-  className?: string;
-  as?: "div" | "li" | "section" | "article" | "p" | "span";
-}) {
-  const reduce = useReduceMotion();
-  const M = motion[as] as typeof motion.div;
-  return (
-    <M
-      data-reveal
-      className={className}
-      initial={reduce ? false : { opacity: 0, y }}
-      {...(reduce ? { animate: { opacity: 1, y: 0 } } : { whileInView: { opacity: 1, y: 0 } })}
-      viewport={{ once: true, margin: "0px 0px -12% 0px" }}
-      transition={reduce ? { duration: 0 } : { duration: 0.6, ease: EASE, delay }}
-    >
-      {children}
-    </M>
-  );
-}
-
-/** Überschrift, deren Zeilen/Wörter aus einer Maske nach oben gleiten. */
-export function SplitHeading({
-  lines,
-  as: Tag = "h2",
-  className,
-  italicLast = false,
-  delay = 0,
-  immediate = false,
-}: {
-  lines: string[];
-  as?: ElementType;
-  className?: string;
-  italicLast?: boolean;
-  delay?: number;
-  immediate?: boolean;
-}) {
-  const reduce = useReduceMotion();
-  let i = 0;
-  return (
-    <Tag className={className}>
-      {lines.map((line, li) => (
-        <span key={li} className="block">
-          {line.split(" ").map((word, wi) => {
-            const d = delay + i++ * 0.05;
-            const italic = italicLast && li === lines.length - 1;
-            return (
-              <span key={wi} className="inline-block overflow-hidden pb-[0.12em] align-bottom -mb-[0.12em]">
-                <motion.span
-                  data-reveal
-                  className={`inline-block ${italic ? "display italic" : ""}`}
-                  initial={reduce ? false : { y: "110%" }}
-                  {...(immediate || reduce ? { animate: { y: "0%" } } : { whileInView: { y: "0%" } })}
-                  viewport={{ once: true, margin: "0px 0px -10% 0px" }}
-                  transition={reduce ? { duration: 0 } : { duration: 0.9, ease: EASE, delay: d }}
-                >
-                  {word}
-                  {wi < line.split(" ").length - 1 ? " " : ""}
-                </motion.span>
-              </span>
-            );
-          })}
-        </span>
-      ))}
-    </Tag>
-  );
-}
-
-/** Bild wird beim Eintritt über eine Clip-Maske aufgedeckt und zoomt leicht zurück. */
+/**
+ * Bildmaske: Ein Bild wird beim ersten Erscheinen über eine Clip-Maske aufgedeckt (Rezept „Scroll reveal“).
+ * Nur für große Bilder auf Marketingflächen, einmalig. Reduzierte Bewegung: sofort sichtbar.
+ */
 export function MaskReveal({
   children,
   className = "",
   direction = "up",
-  delay = 0,
 }: {
   children: ReactNode;
   className?: string;
-  direction?: "up" | "left" | "right";
-  delay?: number;
+  direction?: "up" | "left";
 }) {
   const reduce = useReduceMotion();
-  const from = {
-    up: "inset(100% 0% 0% 0%)",
-    left: "inset(0% 100% 0% 0%)",
-    right: "inset(0% 0% 0% 100%)",
-  }[direction];
+  const from = direction === "up" ? "inset(100% 0% 0% 0%)" : "inset(0% 100% 0% 0%)";
   return (
     <motion.div
       data-reveal
@@ -115,113 +30,9 @@ export function MaskReveal({
       initial={reduce ? false : { clipPath: from }}
       {...(reduce ? { animate: { clipPath: "inset(0% 0% 0% 0%)" } } : { whileInView: { clipPath: "inset(0% 0% 0% 0%)" } })}
       viewport={{ once: true, margin: "0px 0px -15% 0px" }}
-      transition={reduce ? { duration: 0 } : { duration: 0.9, ease: EASE_IN_OUT, delay }}
+      transition={reduce ? { duration: 0 } : { duration: 0.7, ease: EASE_IN_OUT }}
     >
-      <motion.div
-        className="h-full w-full"
-        initial={reduce ? false : { scale: 1.08 }}
-        {...(reduce ? { animate: { scale: 1 } } : { whileInView: { scale: 1 } })}
-        viewport={{ once: true, margin: "0px 0px -15% 0px" }}
-        transition={reduce ? { duration: 0 } : { duration: 0.9, ease: EASE, delay }}
-      >
-        {children}
-      </motion.div>
-    </motion.div>
-  );
-}
-
-/** Leichter Parallax-Effekt für Bilder innerhalb eines Rahmens. */
-export function Parallax({
-  children,
-  className = "",
-  amount = 10,
-}: {
-  children: ReactNode;
-  className?: string;
-  amount?: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const reduce = useReduceMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [`-${amount}%`, `${amount}%`]);
-  return (
-    <div ref={ref} className={`relative overflow-hidden ${className}`}>
-      <motion.div
-        className="absolute inset-x-0"
-        style={{ y: reduce ? 0 : y, top: `-${amount}%`, bottom: `-${amount}%` }}
-      >
-        {children}
-      </motion.div>
-    </div>
-  );
-}
-
-function Word({ children, progress, range }: { children: string; progress: MotionValue<number>; range: [number, number] }) {
-  const opacity = useTransform(progress, range, [0.16, 1]);
-  return (
-    <motion.span style={{ opacity }} className="inline">
-      {children}{" "}
-    </motion.span>
-  );
-}
-
-/** Großer Statement-Text, der sich Wort für Wort beim Scrollen „füllt“. */
-export function ScrollText({ text, className }: { text: string; className?: string }) {
-  const ref = useRef<HTMLParagraphElement>(null);
-  const reduce = useReduceMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start 0.85", "end 0.45"] });
-  const words = text.split(" ");
-  if (reduce) return <p className={className}>{text}</p>;
-  return (
-    <p ref={ref} className={className}>
-      {words.map((w, i) => (
-        <Word key={i} progress={scrollYProgress} range={[i / words.length, (i + 1) / words.length]}>
-          {w}
-        </Word>
-      ))}
-    </p>
-  );
-}
-
-/** Linie, die sich beim Scrollen zeichnet. */
-export function DrawLine({ className = "" }: { className?: string }) {
-  const reduce = useReduceMotion();
-  return (
-    <motion.div
-      aria-hidden
-      className={`origin-left ${className}`}
-      initial={reduce ? false : { scaleX: 0 }}
-      {...(reduce ? { animate: { scaleX: 1 } } : { whileInView: { scaleX: 1 } })}
-      viewport={{ once: true, margin: "0px 0px -10% 0px" }}
-      transition={reduce ? { duration: 0 } : { duration: 0.9, ease: EASE }}
-    />
-  );
-}
-
-/**
- * Abschnittsübergang „aus einem Guss“: Ein dunkler Abschnitt wächst beim Hereinscrollen
- * aus einer abgerundeten, leicht eingerückten Fläche auf volle Breite. Direkt an den Scroll
- * gekoppelt (keine Dauer, also jederzeit unterbrechbar). Reduzierte Bewegung: sofort voll.
- */
-export function ExpandSection({
-  children,
-  className = "",
-  id,
-}: {
-  children: ReactNode;
-  className?: string;
-  id?: string;
-}) {
-  const ref = useRef<HTMLElement>(null);
-  const reduce = useReduceMotion();
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start 0.25"] });
-  const clipPath = useTransform(scrollYProgress, (p) => {
-    const k = 1 - Math.min(1, Math.max(0, p));
-    return `inset(0% ${(k * 4).toFixed(2)}% 0% ${(k * 4).toFixed(2)}% round ${(k * 32).toFixed(1)}px ${(k * 32).toFixed(1)}px 0 0)`;
-  });
-  return (
-    <motion.section ref={ref} id={id} className={className} style={reduce ? undefined : { clipPath }}>
       {children}
-    </motion.section>
+    </motion.div>
   );
 }

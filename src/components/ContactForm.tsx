@@ -4,232 +4,328 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { useRef, useState, type FormEvent } from "react";
 import { site } from "@/lib/site";
-import { Arrow } from "./Arrow";
+import { useReduceMotion } from "@/lib/useReduceMotion";
 
-const TOPICS = ["Heizung", "Sanitär", "Klima", "Lüftung", "Wartung / Service", "Störung", "Sonstiges"];
-type Errors = Partial<Record<"name" | "email" | "message" | "consent" | "topic", string>>;
+const TOPICS = ["Heizung", "Sanitär & Trinkwasser", "Klima & Kälte", "Wartung / Service", "Störung", "Sonstiges"];
+const OBJECTS = ["Einfamilienhaus", "Mehrfamilienhaus", "Wohnung", "Gewerbe / Büro", "Sonstiges"];
+const PLANS = ["Neubau", "Modernisierung / Sanierung", "Wartung / Reparatur", "Noch offen"];
+const TIMES = ["So bald wie möglich", "In 1–3 Monaten", "Später", "Noch offen"];
+const STEPS = ["Gewerk", "Objekt", "Anliegen", "Kontakt"];
+
+type Data = {
+  topics: string[];
+  object: string;
+  plan: string;
+  message: string;
+  place: string;
+  time: string;
+  name: string;
+  company: string;
+  email: string;
+  phone: string;
+  consent: boolean;
+  gotcha: string;
+};
+type Errors = Partial<Record<keyof Data, string>>;
 type Status = "idle" | "sending" | "success" | "error";
 
-const field =
-  "peer w-full rounded-none border-0 border-b border-navy-900/20 bg-transparent px-0 pb-3 pt-7 text-lg text-navy-900 placeholder-transparent transition-colors focus:border-navy-900 focus:outline-none focus:ring-0 aria-[invalid=true]:border-ember-strong";
-const label =
-  "pointer-events-none absolute left-0 top-7 origin-left text-lg text-muted transition-[transform,color] duration-200 ease-[var(--ease-out)] peer-focus:-translate-y-7 peer-focus:scale-75 peer-focus:text-navy-900 peer-[:not(:placeholder-shown)]:-translate-y-7 peer-[:not(:placeholder-shown)]:scale-75";
+const initial: Data = { topics: [], object: "", plan: "", message: "", place: "", time: "", name: "", company: "", email: "", phone: "", consent: false, gotcha: "" };
 
+const input =
+  "w-full border border-navy/25 bg-white px-4 py-3 text-base text-navy transition-[border-color] duration-200 focus:border-navy focus:outline-none aria-[invalid=true]:border-heat-ink";
+
+function Choice({ label, selected, onClick, multi }: { label: string; selected: boolean; onClick: () => void; multi?: boolean }) {
+  return (
+    <button
+      type="button"
+      role={multi ? "checkbox" : "radio"}
+      aria-checked={selected}
+      onClick={onClick}
+      className={`press border px-4 py-3 text-left text-sm font-semibold transition-[background-color,border-color,color] duration-200 ${
+        selected ? "border-navy bg-navy text-white" : "border-navy/25 bg-white text-navy hover:border-navy"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+/**
+ * Anfrage-Assistent in vier Schritten. Schrittwechsel = Zustandswechsel: 250 ms, --ease-out,
+ * Richtung folgt dem Vor/Zurück (räumliche Konsistenz). Fokus wandert auf die Schrittüberschrift.
+ */
 export function ContactForm() {
-  const [topics, setTopics] = useState<string[]>([]);
-  const [customer, setCustomer] = useState<"Privat" | "Gewerbe">("Privat");
+  const [step, setStep] = useState(0);
+  const [dir, setDir] = useState(1);
+  const [data, setData] = useState<Data>(initial);
   const [errors, setErrors] = useState<Errors>({});
   const [status, setStatus] = useState<Status>("idle");
-  const formRef = useRef<HTMLFormElement>(null);
+  const reduce = useReduceMotion();
+  // Fokus auf die Überschrift des neuen Schritts, sobald sie im DOM ist (nach der Ausblendung des alten Schritts)
+  const focusNext = useRef(false);
+  const heading = (el: HTMLHeadingElement | null) => {
+    if (!el || !focusNext.current) return;
+    focusNext.current = false;
+    el.focus({ preventScroll: true });
+  };
 
-  const toggle = (t: string) => setTopics((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
+  const set = <K extends keyof Data>(k: K, v: Data[K]) => setData((d) => ({ ...d, [k]: v }));
+  const toggleTopic = (t: string) => set("topics", data.topics.includes(t) ? data.topics.filter((x) => x !== t) : [...data.topics, t]);
 
-  function validate(fd: FormData): Errors {
+  const validate = (s: number): Errors => {
     const e: Errors = {};
-    if (!topics.length) e.topic = "Bitte wählen Sie mindestens einen Bereich.";
-    if (!String(fd.get("name") || "").trim()) e.name = "Bitte geben Sie Ihren Namen an.";
-    const email = String(fd.get("email") || "").trim();
-    if (!email) e.email = "Bitte geben Sie Ihre E-Mail-Adresse an.";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) e.email = "Bitte prüfen Sie die E-Mail-Adresse.";
-    if (String(fd.get("message") || "").trim().length < 10) e.message = "Bitte beschreiben Sie Ihr Anliegen kurz (mind. 10 Zeichen).";
-    if (!fd.get("consent")) e.consent = "Bitte stimmen Sie der Verarbeitung Ihrer Angaben zu.";
-    return e;
-  }
-
-  async function onSubmit(ev: FormEvent<HTMLFormElement>) {
-    ev.preventDefault();
-    const form = ev.currentTarget;
-    const fd = new FormData(form);
-    const e = validate(fd);
-    setErrors(e);
-    if (Object.keys(e).length) {
-      const first = form.querySelector<HTMLElement>(`[data-field="${Object.keys(e)[0]}"]`);
-      first?.focus();
-      return;
+    if (s === 0 && !data.topics.length) e.topics = "Bitte wählen Sie mindestens einen Bereich.";
+    if (s === 1) {
+      if (!data.object) e.object = "Bitte wählen Sie die Art des Objekts.";
+      if (!data.plan) e.plan = "Bitte wählen Sie, worum es geht.";
     }
-    if (fd.get("_gotcha")) return; // Spam-Schutz
+    if (s === 2 && data.message.trim().length < 10) e.message = "Bitte beschreiben Sie Ihr Anliegen kurz (mindestens 10 Zeichen).";
+    if (s === 3) {
+      if (!data.name.trim()) e.name = "Bitte geben Sie Ihren Namen an.";
+      if (!data.email.trim()) e.email = "Bitte geben Sie Ihre E-Mail-Adresse an.";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(data.email.trim())) e.email = "Bitte prüfen Sie die E-Mail-Adresse.";
+      if (!data.consent) e.consent = "Bitte stimmen Sie der Verarbeitung Ihrer Angaben zu.";
+    }
+    return e;
+  };
+
+  const next = () => {
+    const e = validate(step);
+    setErrors(e);
+    if (Object.keys(e).length) return;
+    setDir(1);
+    focusNext.current = true;
+    setStep((s) => s + 1);
+  };
+  const back = () => {
+    setErrors({});
+    setDir(-1);
+    focusNext.current = true;
+    setStep((s) => s - 1);
+  };
+
+  async function submit(ev: FormEvent) {
+    ev.preventDefault();
+    if (step < STEPS.length - 1) return next();
+    const e = validate(3);
+    setErrors(e);
+    if (Object.keys(e).length) return;
+    if (data.gotcha) return; // Spam-Schutz
     setStatus("sending");
     try {
       const res = await fetch(site.formEndpoint, {
         method: "POST",
         headers: { Accept: "application/json", "Content-Type": "application/json" },
         body: JSON.stringify({
-          _subject: `Neue Anfrage über neckair: ${topics.join(", ")}`,
-          bereich: topics.join(", "),
-          kundentyp: customer,
-          name: fd.get("name"),
-          firma: fd.get("company") || "",
-          email: fd.get("email"),
-          telefon: fd.get("phone") || "",
-          ort: fd.get("place") || "",
-          nachricht: fd.get("message"),
+          _subject: `Neue Anfrage über die NECKAIR-Website: ${data.topics.join(", ")}`,
+          bereich: data.topics.join(", "),
+          objekt: data.object,
+          vorhaben: data.plan,
+          zeitraum: data.time,
+          ort: data.place,
+          nachricht: data.message,
+          name: data.name,
+          firma: data.company,
+          email: data.email,
+          telefon: data.phone,
         }),
       });
       if (!res.ok) throw new Error(String(res.status));
       setStatus("success");
-      form.reset();
-      setTopics([]);
     } catch {
       setStatus("error");
     }
   }
 
-  const err = (k: keyof Errors) =>
+  const err = (k: keyof Data) =>
     errors[k] ? (
-      <p id={`${k}-error`} className="field-error mt-2 text-sm text-ember-strong">
+      <p id={`${k}-error`} className="field-error mt-2 text-sm text-heat-ink">
         {errors[k]}
       </p>
     ) : null;
 
+  if (status === "success") {
+    return (
+      <div role="status" className="bg-graphite p-10 text-on-dark lg:p-14">
+        <h2 className="text-[clamp(1.8rem,3.4vw,2.8rem)]">Anfrage gesendet.</h2>
+        <p className="measure mt-4 text-on-dark-muted">Danke, {data.name.split(" ")[0]}. Wir melden uns persönlich bei Ihnen – in der Regel per E-Mail an {data.email}.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setData(initial);
+            setStep(0);
+            setStatus("idle");
+          }}
+          className="btn btn-outline-light mt-10"
+        >
+          Weitere Anfrage stellen
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="relative">
-      <AnimatePresence mode="wait">
-        {status === "success" ? (
-          <motion.div
-            key="ok"
-            role="status"
-            initial={{ opacity: 0, y: 12 }}
-            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-2xl bg-navy-900 p-10 text-paper lg:p-14"
+    <form noValidate onSubmit={submit} className="bg-white p-6 sm:p-10" aria-describedby="form-progress">
+      {/* Schrittanzeige */}
+      <div id="form-progress">
+        <p className="text-sm text-muted">
+          Schritt {step + 1} von {STEPS.length}: <span className="font-semibold text-navy">{STEPS[step]}</span>
+        </p>
+        <ol className="mt-3 grid grid-cols-4 gap-1.5" aria-hidden>
+          {STEPS.map((s, i) => (
+            <li key={s} className="h-1 bg-navy/15">
+              <span className={`block h-full origin-left bg-navy transition-transform duration-300 ease-[var(--ease-out)] ${i <= step ? "scale-x-100" : "scale-x-0"}`} />
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div className="relative mt-10 min-h-[20rem]">
+        <AnimatePresence mode="wait" initial={false} custom={dir}>
+          <motion.fieldset
+            key={step}
+            custom={dir}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, x: dir * 16 }}
+            animate={{ opacity: 1, x: 0, transition: { duration: 0.25, ease: [0.23, 1, 0.32, 1] } }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, x: dir * -12, transition: { duration: 0.15 } }}
           >
-            <p className="eyebrow text-sky">Vielen Dank</p>
-            <p className="mt-6 text-3xl font-medium tracking-tight lg:text-4xl">
-              Ihre Anfrage ist bei uns <span className="display italic">angekommen.</span>
-            </p>
-            <p className="mt-4 max-w-md text-paper/70">Wir melden uns so schnell wie möglich persönlich bei Ihnen.</p>
-            <button type="button" onClick={() => setStatus("idle")} className="btn btn-ghost-light mt-10">
-              Weitere Anfrage senden
-            </button>
-          </motion.div>
-        ) : (
-          <motion.form
-            key="form"
-            ref={formRef}
-            noValidate
-            onSubmit={onSubmit}
-            initial={false}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-12"
-            aria-describedby="form-hint"
-          >
-            <fieldset>
-              <legend className="eyebrow text-azure-strong">Worum geht es?</legend>
-              <div className="mt-6 flex flex-wrap gap-2" data-field="topic" tabIndex={-1}>
-                {TOPICS.map((t) => {
-                  const on = topics.includes(t);
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      aria-pressed={on}
-                      onClick={() => toggle(t)}
-                      className={`press rounded-full border px-5 py-2.5 text-sm font-medium transition-[transform,background-color,border-color,color] duration-200 ${
-                        on ? "border-navy-900 bg-navy-900 text-paper" : "border-navy-900/20 text-navy-900 hover:border-navy-900/60"
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  );
-                })}
-              </div>
-              {err("topic")}
-            </fieldset>
-
-            <fieldset>
-              <legend className="eyebrow text-azure-strong">Sie sind</legend>
-              <div className="mt-6 inline-flex rounded-full border border-navy-900/20 p-1">
-                {(["Privat", "Gewerbe"] as const).map((c) => (
-                  <label key={c} className="relative cursor-pointer">
-                    <input
-                      type="radio"
-                      name="customer"
-                      value={c}
-                      checked={customer === c}
-                      onChange={() => setCustomer(c)}
-                      className="peer sr-only"
-                    />
-                    <span className="block rounded-full px-5 py-2 text-sm font-medium text-navy-900 transition-colors peer-checked:bg-navy-900 peer-checked:text-paper peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-sky">
-                      {c === "Privat" ? "Privatkunde" : "Geschäftskunde"}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-
-            <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
-              <div className="relative">
-                <input id="name" name="name" data-field="name" autoComplete="name" placeholder="Name" className={field}
-                  aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined} />
-                <label htmlFor="name" className={label}>Name *</label>
-                {err("name")}
-              </div>
-              <div className="relative">
-                <input id="company" name="company" autoComplete="organization" placeholder="Firma" className={field} />
-                <label htmlFor="company" className={label}>Firma (optional)</label>
-              </div>
-              <div className="relative">
-                <input id="email" name="email" type="email" data-field="email" autoComplete="email" inputMode="email" placeholder="E-Mail" className={field}
-                  aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined} />
-                <label htmlFor="email" className={label}>E-Mail *</label>
-                {err("email")}
-              </div>
-              <div className="relative">
-                <input id="phone" name="phone" type="tel" autoComplete="tel" inputMode="tel" placeholder="Telefon" className={field} />
-                <label htmlFor="phone" className={label}>Telefon (optional)</label>
-              </div>
-              <div className="relative sm:col-span-2">
-                <input id="place" name="place" autoComplete="address-level2" placeholder="PLZ / Ort" className={field} />
-                <label htmlFor="place" className={label}>PLZ / Ort des Objekts (optional)</label>
-              </div>
-              <div className="relative sm:col-span-2">
-                <textarea id="message" name="message" data-field="message" rows={5} placeholder="Nachricht" className={`${field} resize-y`}
-                  aria-invalid={!!errors.message} aria-describedby={errors.message ? "message-error" : undefined} />
-                <label htmlFor="message" className={label}>Ihr Anliegen *</label>
-                {err("message")}
-              </div>
-            </div>
-
-            <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
-              <label>Bitte leer lassen <input name="_gotcha" tabIndex={-1} autoComplete="off" /></label>
-            </div>
-
-            <div>
-              <label className="flex cursor-pointer items-start gap-4 text-[0.95rem] leading-relaxed text-muted">
-                <input
-                  type="checkbox"
-                  name="consent"
-                  data-field="consent"
-                  className="mt-1 h-5 w-5 shrink-0 accent-navy-900"
-                  aria-invalid={!!errors.consent}
-                  aria-describedby={errors.consent ? "consent-error" : undefined}
+            {step === 0 ? (
+              <>
+                <legend className="sr-only">Gewerk</legend>
+                <h2 ref={heading} tabIndex={-1} className="text-[clamp(1.6rem,3vw,2.4rem)] text-navy outline-none">Worum geht es?</h2>
+                <p className="mt-2 text-muted">Mehrfachauswahl möglich.</p>
+                <div role="group" aria-label="Bereich" aria-describedby={errors.topics ? "topics-error" : undefined} className="mt-6 grid gap-2 sm:grid-cols-2">
+                  {TOPICS.map((t) => (
+                    <Choice key={t} label={t} multi selected={data.topics.includes(t)} onClick={() => toggleTopic(t)} />
+                  ))}
+                </div>
+                {err("topics")}
+              </>
+            ) : step === 1 ? (
+              <>
+                <legend className="sr-only">Objekt</legend>
+                <h2 ref={heading} tabIndex={-1} className="text-[clamp(1.6rem,3vw,2.4rem)] text-navy outline-none">Um welches Objekt geht es?</h2>
+                <p className="mt-6 text-sm font-semibold text-navy">Objektart</p>
+                <div role="radiogroup" aria-label="Objektart" className="mt-3 grid gap-2 sm:grid-cols-3">
+                  {OBJECTS.map((o) => (
+                    <Choice key={o} label={o} selected={data.object === o} onClick={() => set("object", o)} />
+                  ))}
+                </div>
+                {err("object")}
+                <p className="mt-8 text-sm font-semibold text-navy">Vorhaben</p>
+                <div role="radiogroup" aria-label="Vorhaben" className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {PLANS.map((o) => (
+                    <Choice key={o} label={o} selected={data.plan === o} onClick={() => set("plan", o)} />
+                  ))}
+                </div>
+                {err("plan")}
+              </>
+            ) : step === 2 ? (
+              <>
+                <legend className="sr-only">Anliegen</legend>
+                <h2 ref={heading} tabIndex={-1} className="text-[clamp(1.6rem,3vw,2.4rem)] text-navy outline-none">Was haben Sie vor?</h2>
+                <label htmlFor="message" className="mt-6 block text-sm font-semibold text-navy">Ihr Anliegen *</label>
+                <textarea
+                  id="message"
+                  rows={5}
+                  value={data.message}
+                  onChange={(e) => set("message", e.target.value)}
+                  className={`${input} mt-2 resize-y`}
+                  aria-invalid={!!errors.message}
+                  aria-describedby={errors.message ? "message-error" : "message-hint"}
                 />
-                <span>
-                  Ich bin einverstanden, dass meine Angaben zur Bearbeitung meiner Anfrage verarbeitet werden. Die Übermittlung erfolgt über den
-                  Dienst Formspree. Details in der{" "}
-                  <Link href="/datenschutz/" className="text-navy-900 underline underline-offset-4">Datenschutzerklärung</Link>. *
-                </span>
-              </label>
-              {err("consent")}
-            </div>
+                <p id="message-hint" className="mt-2 text-sm text-muted">Zum Beispiel: Gebäudegröße, vorhandene Technik, was Sie stört oder was Sie sich wünschen.</p>
+                {err("message")}
+                <div className="mt-6 grid gap-6 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="place" className="block text-sm font-semibold text-navy">PLZ / Ort des Objekts</label>
+                    <input id="place" autoComplete="address-level2" value={data.place} onChange={(e) => set("place", e.target.value)} className={`${input} mt-2`} />
+                  </div>
+                  <div>
+                    <label htmlFor="time" className="block text-sm font-semibold text-navy">Zeitraum</label>
+                    <select id="time" value={data.time} onChange={(e) => set("time", e.target.value)} className={`${input} mt-2`}>
+                      <option value="">Bitte wählen</option>
+                      {TIMES.map((t) => (
+                        <option key={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <legend className="sr-only">Kontakt</legend>
+                <h2 ref={heading} tabIndex={-1} className="text-[clamp(1.6rem,3vw,2.4rem)] text-navy outline-none">Wie erreichen wir Sie?</h2>
+                <div className="mt-6 grid gap-6 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-semibold text-navy">Name *</label>
+                    <input id="name" autoComplete="name" value={data.name} onChange={(e) => set("name", e.target.value)} className={`${input} mt-2`} aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined} />
+                    {err("name")}
+                  </div>
+                  <div>
+                    <label htmlFor="company" className="block text-sm font-semibold text-navy">Firma</label>
+                    <input id="company" autoComplete="organization" value={data.company} onChange={(e) => set("company", e.target.value)} className={`${input} mt-2`} />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-semibold text-navy">E-Mail *</label>
+                    <input id="email" type="email" inputMode="email" autoComplete="email" value={data.email} onChange={(e) => set("email", e.target.value)} className={`${input} mt-2`} aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined} />
+                    {err("email")}
+                  </div>
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-semibold text-navy">Telefon</label>
+                    <input id="phone" type="tel" inputMode="tel" autoComplete="tel" value={data.phone} onChange={(e) => set("phone", e.target.value)} className={`${input} mt-2`} />
+                  </div>
+                </div>
+                <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
+                  <label>
+                    Bitte leer lassen <input tabIndex={-1} autoComplete="off" value={data.gotcha} onChange={(e) => set("gotcha", e.target.value)} />
+                  </label>
+                </div>
+                <label className="mt-8 flex cursor-pointer items-start gap-4 text-[0.95rem] leading-relaxed text-muted">
+                  <input
+                    type="checkbox"
+                    checked={data.consent}
+                    onChange={(e) => set("consent", e.target.checked)}
+                    className="mt-1 h-5 w-5 shrink-0 accent-navy"
+                    aria-invalid={!!errors.consent}
+                    aria-describedby={errors.consent ? "consent-error" : undefined}
+                  />
+                  <span>
+                    Ich bin einverstanden, dass meine Angaben zur Bearbeitung meiner Anfrage verarbeitet werden. Die Übermittlung erfolgt über
+                    den Dienst Formspree. Details in der{" "}
+                    <Link href="/datenschutz/" className="link text-navy">Datenschutzerklärung</Link>. *
+                  </span>
+                </label>
+                {err("consent")}
+              </>
+            )}
+          </motion.fieldset>
+        </AnimatePresence>
+      </div>
 
-            <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-              <button type="submit" disabled={status === "sending"} className="btn btn-dark disabled:opacity-60">
-                {status === "sending" ? "Wird gesendet …" : "Anfrage senden"} <Arrow className="arrow" />
-              </button>
-              <p id="form-hint" className="text-sm text-muted">* Pflichtfelder</p>
-            </div>
-            <div aria-live="assertive">
-              {status === "error" && (
-                <p className="field-error rounded-xl border border-ember-strong/30 bg-ember/10 px-5 py-4 text-sm text-ember-strong">
-                  Leider konnte Ihre Anfrage nicht gesendet werden. Bitte versuchen Sie es erneut oder schreiben Sie uns direkt an{" "}
-                  <a href={`mailto:${site.email}`} className="underline">{site.email}</a>.
-                </p>
-              )}
-            </div>
-          </motion.form>
+      <div aria-live="assertive">
+        {status === "error" ? (
+          <p className="field-error mt-6 border-l-2 border-heat-ink bg-kalk px-5 py-4 text-sm text-heat-ink">
+            Die Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es erneut oder schreiben Sie direkt an{" "}
+            <a href={`mailto:${site.email}`} className="link">{site.email}</a>.
+          </p>
+        ) : null}
+      </div>
+
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-navy/10 pt-6">
+        {step > 0 ? (
+          <button type="button" onClick={back} className="btn btn-outline-dark">Zurück</button>
+        ) : (
+          <span className="text-sm text-muted">* Pflichtfelder</span>
         )}
-      </AnimatePresence>
-    </div>
+        {step < STEPS.length - 1 ? (
+          <button type="submit" className="btn btn-primary">Weiter</button>
+        ) : (
+          <button type="submit" disabled={status === "sending"} className="btn btn-primary disabled:opacity-60">
+            {status === "sending" ? "Wird gesendet …" : "Anfrage senden"}
+          </button>
+        )}
+      </div>
+    </form>
   );
 }
