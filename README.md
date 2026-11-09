@@ -2,7 +2,6 @@
 
 Webauftritt von NECKAIR: Heizung, Sanitär & Trinkwasser, Klima & Kälte.
 Konzept „Der lebendige Bauplan“ – Next.js (statischer Export), TypeScript, Tailwind CSS 4, Motion.
-Next.js (App Router, statischer Export) · TypeScript · Tailwind CSS 4 · Motion.
 
 ## Lokal starten
 
