@@ -64,6 +64,8 @@ export default function KontaktPage() {
                 <br />
                 {site.zip} {site.city}
               </address>
+              <h2 className="mt-8 text-xl text-navy">Einsatzgebiet</h2>
+              <p className="mt-3 leading-relaxed text-muted">{site.serviceArea.join(", ")} und Umgebung.</p>
             </div>
           </aside>
         </div>

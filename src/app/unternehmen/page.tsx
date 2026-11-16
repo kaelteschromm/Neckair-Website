@@ -81,7 +81,7 @@ export default function UnternehmenPage() {
             <h2 className="mt-3 text-[clamp(2rem,4vw,3.4rem)] text-navy">{site.owner}</h2>
             <p className="measure mt-8 text-lg leading-relaxed text-muted">
               Mit NECKAIR hat {site.owner} einen Fachbetrieb aufgebaut, der Heizung, Sanitär & Trinkwasser sowie Klima & Kälte aus einer
-              Hand anbietet. Sein Anspruch: ehrlich beraten, sauber planen und Projekte so umsetzen, dass sie über viele Jahre Freude
+              Hand anbietet. Der Anspruch: ehrlich beraten, sauber planen und Projekte so umsetzen, dass sie über viele Jahre Freude
               machen.
             </p>
           </div>
@@ -127,7 +127,7 @@ export default function UnternehmenPage() {
           </MaskReveal>
           <SectionHeading
             title="Zuhause in der Region."
-            text={`Unser Sitz ist in ${site.city}. Von hier aus betreuen wir Privat- und Geschäftskunden in der Umgebung – mit kurzen Wegen und schneller Reaktionszeit.`}
+            text={`Unser Sitz ist in ${site.city}. Von hier aus betreuen wir Privat- und Geschäftskunden in ${site.serviceArea.filter((o) => o !== site.city).join(", ")} und Umgebung – mit kurzen Wegen.`}
             className="lg:col-span-5"
           />
         </div>

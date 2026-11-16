@@ -128,6 +128,8 @@ export function ContactForm() {
           firma: data.company,
           email: data.email,
           telefon: data.phone,
+          _gotcha: data.gotcha,
+          einwilligung: `Datenschutzhinweis akzeptiert am ${new Date().toISOString()}`,
         }),
       });
       if (!res.ok) throw new Error(String(res.status));
@@ -226,7 +228,7 @@ export function ContactForm() {
                 <h2 ref={heading} tabIndex={-1} className="text-[clamp(1.6rem,3vw,2.4rem)] text-navy outline-none">Was haben Sie vor?</h2>
                 <label htmlFor="message" className="mt-6 block text-sm font-semibold text-navy">Ihr Anliegen *</label>
                 <textarea
-                  id="message"
+                  id="message" maxLength={4000}
                   rows={5}
                   value={data.message}
                   onChange={(e) => set("message", e.target.value)}
@@ -239,7 +241,7 @@ export function ContactForm() {
                 <div className="mt-6 grid gap-6 sm:grid-cols-2">
                   <div>
                     <label htmlFor="place" className="block text-sm font-semibold text-navy">PLZ / Ort des Objekts</label>
-                    <input id="place" autoComplete="address-level2" value={data.place} onChange={(e) => set("place", e.target.value)} className={`${input} mt-2`} />
+                    <input id="place" maxLength={80} autoComplete="address-level2" value={data.place} onChange={(e) => set("place", e.target.value)} className={`${input} mt-2`} />
                   </div>
                   <div>
                     <label htmlFor="time" className="block text-sm font-semibold text-navy">Zeitraum</label>
@@ -259,21 +261,21 @@ export function ContactForm() {
                 <div className="mt-6 grid gap-6 sm:grid-cols-2">
                   <div>
                     <label htmlFor="name" className="block text-sm font-semibold text-navy">Name *</label>
-                    <input id="name" autoComplete="name" value={data.name} onChange={(e) => set("name", e.target.value)} className={`${input} mt-2`} aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined} />
+                    <input id="name" maxLength={100} autoComplete="name" value={data.name} onChange={(e) => set("name", e.target.value)} className={`${input} mt-2`} aria-invalid={!!errors.name} aria-describedby={errors.name ? "name-error" : undefined} />
                     {err("name")}
                   </div>
                   <div>
                     <label htmlFor="company" className="block text-sm font-semibold text-navy">Firma</label>
-                    <input id="company" autoComplete="organization" value={data.company} onChange={(e) => set("company", e.target.value)} className={`${input} mt-2`} />
+                    <input id="company" maxLength={120} autoComplete="organization" value={data.company} onChange={(e) => set("company", e.target.value)} className={`${input} mt-2`} />
                   </div>
                   <div>
                     <label htmlFor="email" className="block text-sm font-semibold text-navy">E-Mail *</label>
-                    <input id="email" type="email" inputMode="email" autoComplete="email" value={data.email} onChange={(e) => set("email", e.target.value)} className={`${input} mt-2`} aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined} />
+                    <input id="email" maxLength={254} type="email" inputMode="email" autoComplete="email" value={data.email} onChange={(e) => set("email", e.target.value)} className={`${input} mt-2`} aria-invalid={!!errors.email} aria-describedby={errors.email ? "email-error" : undefined} />
                     {err("email")}
                   </div>
                   <div>
                     <label htmlFor="phone" className="block text-sm font-semibold text-navy">Telefon</label>
-                    <input id="phone" type="tel" inputMode="tel" autoComplete="tel" value={data.phone} onChange={(e) => set("phone", e.target.value)} className={`${input} mt-2`} />
+                    <input id="phone" maxLength={40} type="tel" inputMode="tel" autoComplete="tel" value={data.phone} onChange={(e) => set("phone", e.target.value)} className={`${input} mt-2`} />
                   </div>
                 </div>
                 <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
@@ -292,7 +294,7 @@ export function ContactForm() {
                   />
                   <span>
                     Ich bin einverstanden, dass meine Angaben zur Bearbeitung meiner Anfrage verarbeitet werden. Die Übermittlung erfolgt über
-                    den Dienst Formspree. Details in der{" "}
+                    den Dienst Formspree (USA). Details in der{" "}
                     <Link href="/datenschutz/" className="link text-navy">Datenschutzerklärung</Link>. *
                   </span>
                 </label>

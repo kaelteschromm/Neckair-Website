@@ -9,9 +9,15 @@
     "dev": "next dev",
     "prebuild": "npm run images",
     "build": "next build",
-    "start": "npx serve out",
+    "start": "node scripts/serve-out.mjs",
     "typecheck": "tsc --noEmit",
-    "postbuild": "node scripts/flatten-segments.mjs"
+    "postbuild": "node scripts/flatten-segments.mjs",
+    "lint": "eslint .",
+    "test": "node --test tests/unit/",
+    "test:e2e": "playwright test",
+    "serve": "node scripts/serve-out.mjs",
+    "bundle-report": "node scripts/bundle-report.mjs",
+    "check": "npm run typecheck && npm run lint && npm test && npm run build && npm run bundle-report && npm run test:e2e"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

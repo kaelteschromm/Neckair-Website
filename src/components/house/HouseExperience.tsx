@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { COMPONENTS, SYSTEMS, SYSTEM_ORDER, type HouseComponent, type SystemKey } from "./model";
 import type { FloorView, SceneApi, SceneState } from "./HouseScene";
 import { useReduceMotion } from "@/lib/useReduceMotion";
@@ -13,6 +13,17 @@ const HouseScene = dynamic(() => import("./HouseScene"), { ssr: false });
 const INITIAL: SceneState = { mode: "arch", system: "all", roof: true, ghostWalls: false, floor: "all", selected: null };
 const SWATCH: Record<SystemKey, string> = { heat: "bg-heat", water: "bg-water", cold: "bg-cold" };
 const INK: Record<SystemKey, string> = { heat: "text-heat-ink", water: "text-water-ink", cold: "text-cold-ink" };
+
+/** Geräteeigenschaften einmalig im Browser ermitteln (auf dem Server: null) */
+let envCache: { gl: boolean; fine: boolean } | null = null;
+const noSubscribe = () => () => {};
+function getEnv() {
+  envCache ??= {
+    gl: hasWebGL(),
+    fine: window.matchMedia("(hover: hover) and (pointer: fine)").matches && window.innerWidth >= 1024,
+  };
+  return envCache;
+}
 
 function hasWebGL() {
   try {
@@ -65,12 +76,13 @@ function InfoCard({ comp, onClose, className = "" }: { comp: HouseComponent; onC
 
 export function HouseExperience() {
   const reduce = useReduceMotion();
-  const [webgl, setWebgl] = useState<boolean | null>(null);
+  const env = useSyncExternalStore(noSubscribe, getEnv, () => null);
+  const webgl = env ? env.gl : null;
+  const lowPower = env ? !env.fine : false;
   const [started, setStarted] = useState(false);
   const [ready, setReady] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
   const [inView, setInView] = useState(false);
-  const [lowPower, setLowPower] = useState(false);
   const [state, setState] = useState<SceneState>(INITIAL);
   const api = useRef<SceneApi | null>(null);
   const stage = useRef<HTMLDivElement>(null);
@@ -79,12 +91,9 @@ export function HouseExperience() {
 
   // WebGL prüfen; auf Desktop mit Maus startet das Haus automatisch, sobald es in Sichtweite kommt.
   useEffect(() => {
-    const gl = hasWebGL();
-    setWebgl(gl);
-    const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches && window.innerWidth >= 1024;
-    setLowPower(!fine);
     const el = stage.current;
-    if (!el) return;
+    if (!el || !env) return;
+    const { gl, fine } = env;
     const io = new IntersectionObserver(
       ([e]) => {
         setInView(e.isIntersecting);
@@ -94,6 +103,12 @@ export function HouseExperience() {
     );
     io.observe(el);
     return () => io.disconnect();
+  }, [env]);
+
+  // Auf Touch-Geräten wird das Modell beim Schließen entladen – danach muss es neu „bereit“ melden
+  const closeFull = useCallback(() => {
+    setFullscreen(false);
+    if (envCache && !envCache.fine) setReady(false);
   }, []);
 
   // Vollbild: Seite sperren, Esc schließt, Fokus zurück zum Auslöser
@@ -104,7 +119,7 @@ export function HouseExperience() {
     root.style.overflow = "hidden";
     closeBtn.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setFullscreen(false);
+      if (e.key === "Escape") closeFull();
     };
     window.addEventListener("keydown", onKey);
     return () => {
@@ -112,7 +127,7 @@ export function HouseExperience() {
       window.removeEventListener("keydown", onKey);
       opener.current?.focus();
     };
-  }, [fullscreen]);
+  }, [fullscreen, closeFull]);
 
   const select = useCallback((id: string) => {
     const c = COMPONENTS.find((x) => x.id === id);
@@ -150,14 +165,11 @@ export function HouseExperience() {
   const selected = state.selected ? COMPONENTS.find((c) => c.id === state.selected) ?? null : null;
   // Auf Touch-Geräten läuft das Modell nur im Vollbild, damit Wischen die Seite nicht blockiert.
   const live = !!webgl && started && (!lowPower || fullscreen);
-  useEffect(() => {
-    if (!live) setReady(false);
-  }, [live]);
 
   const fromList = (id: string, el: HTMLElement) => {
     select(id);
     if (live && !fullscreen) stage.current?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" });
-    else if (webgl && !started && lowPower) start(true, el);
+    else if (webgl && lowPower) start(true, el);
   };
 
   return (
@@ -220,8 +232,8 @@ export function HouseExperience() {
           {live && ready ? (
             <>
               {/* Bedienleiste oben */}
-              <div className="absolute inset-x-3 top-3 flex flex-wrap items-start justify-between gap-2 sm:inset-x-4 sm:top-4">
-                <div className="flex flex-wrap gap-2">
+              <div className="absolute inset-x-3 top-3 sm:inset-x-4 sm:top-4">
+                <div className="flex flex-wrap gap-2 pr-24">
                   <div role="group" aria-label="Ansicht" className="flex">
                     <Tool pressed={state.mode === "arch"} onClick={() => setMode("arch")}>Architektur</Tool>
                     <Tool pressed={state.mode === "tech"} onClick={() => setMode("tech")} className="-ml-px">Technik</Tool>
@@ -242,10 +254,10 @@ export function HouseExperience() {
                   ref={closeBtn}
                   type="button"
                   onClick={(e) => {
-                    if (fullscreen) setFullscreen(false);
+                    if (fullscreen) closeFull();
                     else start(true, e.currentTarget);
                   }}
-                  className="press min-h-10 border border-navy/15 bg-white/90 px-3 text-sm font-semibold text-navy hover:border-navy/50"
+                  className="press absolute right-0 top-0 min-h-10 border border-navy/15 bg-white/90 px-3 text-sm font-semibold text-navy hover:border-navy/50"
                 >
                   {fullscreen ? "Schließen" : "Vollbild"}
                 </button>
@@ -277,7 +289,7 @@ export function HouseExperience() {
                 <InfoCard
                   comp={selected}
                   onClose={() => setState((s) => ({ ...s, selected: null }))}
-                  className="absolute inset-x-3 bottom-[7.5rem] sm:inset-x-auto sm:right-4 sm:top-20 sm:bottom-auto sm:w-80"
+                  className="absolute inset-x-3 bottom-[10.5rem] sm:inset-x-auto sm:right-4 sm:top-20 sm:bottom-auto sm:w-80"
                 />
               ) : null}
             </>

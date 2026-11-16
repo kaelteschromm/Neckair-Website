@@ -11,6 +11,8 @@ export const site = {
   zip: "68753",
   city: "Waghäusel",
   region: "Baden-Württemberg",
+  /** Einzugsgebiet (für Texte und strukturierte Daten) */
+  serviceArea: ["Waghäusel", "Wiesloch", "Walldorf", "Sandhausen"],
   country: "Deutschland",
   phone: "07254 / 123456", // PLATZHALTER
   phoneHref: "+497254123456", // PLATZHALTER

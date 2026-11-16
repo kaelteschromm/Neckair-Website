@@ -73,7 +73,7 @@ export default async function ReferenzDetail({ params }: { params: Promise<{ slu
                   </dd>
                 </div>
                 <div className="py-4">
-                  <dt className="text-sm text-muted">Leistungen</dt>
+                  <dt className="text-sm text-muted">Eingesetzte Technik</dt>
                   <dd className="mt-2 text-navy">{r.services.join(", ")}</dd>
                 </div>
               </dl>

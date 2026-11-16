@@ -723,9 +723,11 @@ function Rig({ apiRef, selected, reduceMotion, wheelZoom, onReady }: { apiRef: P
   const ref = useRef<CameraControlsImpl>(null);
   const size = useThree((s) => s.size);
   const aspect = size.width / Math.max(1, size.height);
-  const scale = aspect < 0.8 ? 1.75 : aspect < 1.25 ? 1.35 : 1;
+  const scale = aspect < 0.6 ? 2.35 : aspect < 0.8 ? 1.9 : aspect < 1.25 ? 1.35 : 1;
   const scaleRef = useRef(scale);
-  scaleRef.current = scale;
+  useLayoutEffect(() => {
+    scaleRef.current = scale;
+  }, [scale]);
 
   const overview = (smooth: boolean) => {
     const c = ref.current;
@@ -762,7 +764,7 @@ function Rig({ apiRef, selected, reduceMotion, wheelZoom, onReady }: { apiRef: P
     const c = ref.current;
     const comp = selected ? COMP_BY_ID.get(selected) : null;
     if (!c || !comp) return;
-    const k = Math.min(scaleRef.current, 1.4);
+    const k = Math.min(scaleRef.current, 1.8);
     const [fx, fy, fz] = comp.focus, [vx, vy, vz] = comp.view;
     void c.setLookAt(fx + vx * k, fy + vy * k, fz + vz * k, fx, fy, fz, !reduceMotion);
   }, [selected, reduceMotion]);

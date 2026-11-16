@@ -6,6 +6,7 @@ import { CtaSection, PageHero, ProcessSection, SectionHeading } from "./sections
 import { TechDrawing } from "./drawings/TechDrawing";
 import { services, serviceList, type Medium, type ServiceSlug } from "@/content/services";
 import { site } from "@/lib/site";
+import { references } from "@/content/references";
 
 export function serviceMetadata(slug: ServiceSlug): Metadata {
   const s = services[slug];
@@ -29,6 +30,7 @@ export function ServicePage({ slug }: { slug: ServiceSlug }) {
   const w = WORLD[s.medium];
   const idx = serviceList.findIndex((x) => x.slug === slug);
   const next = serviceList[(idx + 1) % serviceList.length];
+  const related = references.filter((r) => r.trades.includes(slug)).slice(0, 3);
 
   const jsonLd = [
     {
@@ -37,12 +39,20 @@ export function ServicePage({ slug }: { slug: ServiceSlug }) {
       name: s.seoTitle,
       description: s.seoDescription,
       provider: { "@type": "HVACBusiness", name: site.name, url: site.url },
-      areaServed: site.region,
+      areaServed: site.serviceArea.map((name) => ({ "@type": "City", name })),
       hasOfferCatalog: {
         "@type": "OfferCatalog",
         name: s.title,
         itemListElement: s.offers.map((o) => ({ "@type": "Offer", itemOffered: { "@type": "Service", name: o.title } })),
       },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Start", item: site.url + "/" },
+        { "@type": "ListItem", position: 2, name: s.title, item: `${site.url}/${slug}/` },
+      ],
     },
     {
       "@context": "https://schema.org",
@@ -73,6 +83,7 @@ export function ServicePage({ slug }: { slug: ServiceSlug }) {
                 </li>
               ))}
             </ul>
+            <p className="mt-8 text-sm text-muted">Für Kunden in {site.serviceArea.join(", ")} und Umgebung.</p>
           </div>
           <div className="lg:col-span-5 lg:col-start-8">
             <MaskReveal className="plan-frame aspect-[4/5] text-navy/40">
@@ -92,6 +103,9 @@ export function ServicePage({ slug }: { slug: ServiceSlug }) {
           <div className="mt-12">
             <TechDrawing medium={s.medium} title={`Schematische Zeichnung: ${s.drawingTitle}`} />
           </div>
+          <Link href="/#erkunden" className="link mt-8 inline-block font-semibold text-navy">
+            {s.mediumLabel} im 3D-Haus erkunden
+          </Link>
         </div>
       </section>
 
@@ -130,6 +144,33 @@ export function ServicePage({ slug }: { slug: ServiceSlug }) {
         </div>
       </section>
 
+      {related.length ? (
+        <section aria-labelledby="projekte-titel" className="border-t border-navy/10 bg-white/60 py-24 lg:py-28">
+          <div className="container-x">
+            <div className="flex flex-col justify-between gap-8 md:flex-row md:items-end">
+              <SectionHeading id="projekte-titel" title="Projekte aus diesem Gewerk." text="Die gezeigten Einträge sind derzeit Demo-Projekte mit Symbolbildern." />
+              <Link href="/referenzen/" className="btn btn-outline-dark shrink-0">Alle Projekte</Link>
+            </div>
+            <ul className="mt-12 grid gap-10 md:grid-cols-3">
+              {related.map((r) => (
+                <li key={r.slug}>
+                  <Link href={`/referenzen/${r.slug}/`} className="group block">
+                    <div className="plan-frame relative aspect-[4/3] overflow-hidden text-navy/40">
+                      <div className="h-full w-full transition-transform duration-300 ease-[var(--ease-out)] group-hover:scale-[1.02]">
+                        <Picture name={r.image} alt={r.imageAlt} sizes="(min-width: 768px) 30vw, 100vw" />
+                      </div>
+                      {r.example ? <span className="absolute left-3 top-3 bg-white px-2 py-1 text-xs font-semibold text-navy">Demo-Projekt</span> : null}
+                    </div>
+                    <p className="mt-5 text-sm text-muted">{r.type}</p>
+                    <h3 className="mt-1 text-xl text-navy">{r.title}</h3>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      ) : null}
+
       <ProcessSection />
 
       {/* FAQ */}
@@ -167,7 +208,7 @@ export function ServicePage({ slug }: { slug: ServiceSlug }) {
       </Link>
 
       <CtaSection image={s.detail} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
     </div>
   );
 }

@@ -13,7 +13,13 @@ const types = {
 };
 
 createServer(async (req, res) => {
-  let url = decodeURIComponent((req.url || "/").split("?")[0]);
+  let url;
+  try {
+    url = decodeURIComponent((req.url || "/").split("?")[0]);
+  } catch {
+    res.writeHead(400).end();
+    return;
+  }
   if (url.endsWith("/")) url += "index.html";
   const file = normalize(join(root, url));
   if (!file.startsWith(root)) {
@@ -27,4 +33,4 @@ createServer(async (req, res) => {
     const body = await readFile(join(root, "404.html")).catch(() => "404");
     res.writeHead(404, { "content-type": "text/html; charset=utf-8" }).end(body);
   }
-}).listen(port, () => console.log(`out/ auf http://localhost:${port}`));
+}).listen(port, "127.0.0.1", () => console.log(`out/ auf http://localhost:${port}`));

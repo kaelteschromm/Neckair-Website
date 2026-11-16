@@ -107,7 +107,6 @@ export function BuildingStory() {
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
     // apply liest nur Refs
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reduce]);
 
   useMotionValueEvent(scrollYProgress, "change", (p) => {

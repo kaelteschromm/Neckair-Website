@@ -28,7 +28,7 @@ export default function DatenschutzPage() {
             E-Mail: <a href={`mailto:${site.email}`}>{site.email}</a> · Telefon: {site.phone}
           </p>
 
-          <h2>2. Hosting und Server-Logfiles</h2>
+          <h2>2. Hosting, Content Delivery Network und Server-Logfiles</h2>
           <p>
             Diese Website wird als statische Website bei GitHub Pages gehostet (GitHub Inc., 88 Colin P. Kelly Jr. Street, San Francisco, CA
             94107, USA). Beim Aufruf der Seiten verarbeitet der Hoster technisch notwendige Daten, insbesondere Ihre IP-Adresse, Datum und
@@ -40,11 +40,24 @@ export default function DatenschutzPage() {
             </a>
             .
           </p>
+          <p>
+            Zusätzlich werden alle Aufrufe über das Content Delivery Network der Cloudflare, Inc. (101 Townsend St., San Francisco, CA 94107,
+            USA) geleitet. Cloudflare verarbeitet dabei ebenfalls technisch notwendige Daten wie Ihre IP-Adresse, Zeitpunkt und aufgerufene
+            Adresse sowie Browser-Informationen, um die Website schnell und geschützt auszuliefern. Dabei kann Cloudflare Ihren Browser
+            anweisen, bei Verbindungsfehlern technische Fehlerberichte an Cloudflare zu senden (Network Error Logging). Rechtsgrundlage ist
+            unser berechtigtes Interesse an einer sicheren und stabilen Bereitstellung (Art. 6 Abs. 1 lit. f DSGVO). Eine Verarbeitung in den
+            USA ist möglich. Weitere Informationen:{" "}
+            <a href="https://www.cloudflare.com/de-de/privacypolicy/" target="_blank" rel="noopener noreferrer">
+              Datenschutzerklärung von Cloudflare
+            </a>
+            .
+          </p>
 
           <h2>3. Kontaktformular</h2>
           <p>
-            Wenn Sie uns über das Kontaktformular schreiben, verarbeiten wir Ihre Angaben (Name, E-Mail-Adresse, optional Firma, Telefon und
-            Ort, Ihre Nachricht sowie den gewählten Bereich), um Ihre Anfrage zu beantworten. Die Übermittlung erfolgt über den Dienst Formspree
+            Wenn Sie uns über das Kontaktformular schreiben, verarbeiten wir Ihre Angaben (Name, E-Mail-Adresse, Ihre Nachricht, den gewählten
+            Bereich, Angaben zu Objekt, Vorhaben und gewünschtem Zeitraum sowie optional Firma, Telefon und Ort), um Ihre Anfrage zu beantworten.
+            Zum Nachweis Ihrer Einwilligung übermitteln wir zusätzlich deren Zeitpunkt. Die Übermittlung erfolgt über den Dienst Formspree
             (Formspree Inc., USA), der uns die Nachricht per E-Mail zustellt. Rechtsgrundlage ist Ihre Einwilligung (Art. 6 Abs. 1 lit. a
             DSGVO) sowie – bei Anfragen zu Angeboten oder Aufträgen – die Durchführung vorvertraglicher Maßnahmen (Art. 6 Abs. 1 lit. b DSGVO).
             Ihre Einwilligung können Sie jederzeit mit Wirkung für die Zukunft widerrufen. Eine Übermittlung in die USA erfolgt auf Grundlage
@@ -105,7 +118,10 @@ export default function DatenschutzPage() {
           </p>
 
           <h2>11. Datensicherheit</h2>
-          <p>Diese Website wird ausschließlich verschlüsselt über HTTPS ausgeliefert.</p>
+          <p>
+            Diese Website wird über HTTPS mit TLS-Verschlüsselung ausgeliefert. Das Kontaktformular überträgt Ihre Angaben ausschließlich
+            verschlüsselt.
+          </p>
 
           <p className="mt-12 text-sm">Stand: November 2026</p>
         </div>

@@ -45,3 +45,17 @@ Alle Effekte pausieren außerhalb des Sichtbereichs und respektieren „Bewegung
 ## Vorschau
 
 Jeder Push auf `main` baut die Seite per GitHub Actions und veröffentlicht sie auf GitHub Pages.
+
+## Qualität und Tests
+
+| Befehl | Zweck |
+|---|---|
+| `npm run check` | Alles: Typen, Lint, Unit-Tests, Build, Bundle-Budget, E2E |
+| `npm run lint` | ESLint |
+| `npm test` | Unit-Tests (Node-Testrunner) |
+| `npm run test:e2e` | Playwright (Desktop, Tablet, Smartphone) mit installiertem Edge |
+| `npm run bundle-report` | Initiales JS und 3D-Chunk messen |
+| `npm start` | Export aus `out/` lokal ansehen (http://localhost:4321) |
+
+Berichte: `NECKAIR-TECHNICAL-REPORT.md`, `NECKAIR-SECURITY-REPORT.md`, `NECKAIR-PRIVACY-REPORT.md`.
+Projekt-Agenten und -Skills liegen in `.claude/`.

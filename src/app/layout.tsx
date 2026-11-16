@@ -26,10 +26,32 @@ export const metadata: Metadata = {
     siteName: site.name,
     title: `${site.name} – Heizung, Sanitär & Trinkwasser, Klima & Kälte`,
     description: site.description,
+    images: [{ url: "/og.jpg", width: 1200, height: 630, alt: "3D-Modell eines modernen Einfamilienhauses – NECKAIR" }],
   },
+  twitter: { card: "summary_large_image" },
   robots: { index: true, follow: true },
   icons: { icon: [{ url: `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/favicon.svg`, type: "image/svg+xml" }] },
 };
+
+/**
+ * Content Security Policy als Meta-Tag (GitHub Pages kann keine Header setzen).
+ * 'unsafe-inline' ist für die Inline-Skripte des statischen Next.js-Exports nötig; Verbindungen gehen nur an die eigene
+ * Domain und an den Formular-Dienst. frame-ancestors wirkt nur als HTTP-Header (siehe NECKAIR-SECURITY-REPORT.md).
+ */
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self'",
+  `connect-src 'self' ${new URL(site.formEndpoint).origin} data: blob:`,
+  `form-action 'self' ${new URL(site.formEndpoint).origin}`,
+  "frame-src 'none'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "worker-src 'self' blob:",
+  "upgrade-insecure-requests",
+].join("; ");
 
 export const viewport: Viewport = {
   themeColor: "#14181d",
@@ -54,13 +76,17 @@ const jsonLd = {
     addressRegion: site.region,
     addressCountry: "DE",
   },
-  areaServed: site.region,
+  areaServed: [...site.serviceArea.map((name) => ({ "@type": "City", name })), { "@type": "State", name: site.region }],
   knowsAbout: ["Heizung", "Wärmepumpen", "Flächenheizung", "Sanitär", "Trinkwasserhygiene", "Klimaanlagen", "Kältetechnik"],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="de" className={`${archivo.variable} ${plex.variable} ${plexMono.variable}`}>
+      <head>
+        {process.env.NODE_ENV === "production" ? <meta httpEquiv="Content-Security-Policy" content={CSP} /> : null}
+        <meta name="referrer" content="strict-origin-when-cross-origin" />
+      </head>
       <body className="min-h-dvh">
         <noscript>
           <style>{`[data-reveal]{opacity:1!important;transform:none!important;clip-path:none!important}`}</style>
@@ -78,7 +104,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <Footer />
         </MotionProvider>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       </body>
     </html>
   );

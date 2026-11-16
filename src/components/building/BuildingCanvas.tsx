@@ -71,7 +71,9 @@ export function BuildingCanvas({
   const ref = useRef<HTMLCanvasElement>(null);
   const reduce = useReduceMotion();
   const pickRef = useRef(onPick);
-  pickRef.current = onPick;
+  useEffect(() => {
+    pickRef.current = onPick;
+  });
   const pickable = Boolean(onPick);
 
   useEffect(() => {
