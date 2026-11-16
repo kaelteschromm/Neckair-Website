@@ -41,7 +41,7 @@
     "tailwindcss": "^4.1.0",
     "three-gpu-pathtracer": "^0.0.28",
     "three-mesh-bvh": "^0.9.18",
-    "typescript": "^5.8.0",
+    "typescript": "^7.0.2",
     "xatlas-web": "^0.1.0"
   }
 }
