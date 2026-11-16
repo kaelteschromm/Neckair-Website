@@ -11,3 +11,11 @@ src/lib/images.generated.ts
 # Impeccable: Engine-Binary nicht ins Repo (wird bei Bedarf neu geladen)
 .claude/skills/impeccable/scripts/bin/
 .impeccable/config.local.json
+
+# Impeccable (lokal installiert, nicht veröffentlichen)
+.claude/skills/impeccable/
+.claude/agents/impeccable-*
+
+# Tests
+/test-results/
+/playwright-report/
