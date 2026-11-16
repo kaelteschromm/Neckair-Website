@@ -2,7 +2,7 @@
   "name": "neckair-website",
   "version": "1.0.0",
   "private": true,
-  "description": "Website der Neckair – Heizung, Sanitär, Klima und Lüftung",
+  "description": "Website der NECKAIR – Heizung, Sanitär & Trinkwasser, Klima & Kälte",
   "scripts": {
     "images": "node scripts/optimize-images.mjs",
     "predev": "npm run images",

@@ -7,7 +7,7 @@ import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Unternehmen",
-  description: "NECKAIR – Handwerk mit Ingenieursblick. Haltung, Arbeitsweise und Qualitätsanspruch Ihres Fachbetriebs für Heizung, Sanitär & Trinkwasser sowie Klima & Kälte.",
+  description: "Wer NECKAIR ist und wie wir arbeiten: Haltung, Arbeitsweise und Qualitätsanspruch Ihres Fachbetriebs für Heizung, Sanitär & Trinkwasser sowie Klima & Kälte.",
   alternates: { canonical: "/unternehmen/" },
 };
 
@@ -48,7 +48,7 @@ export default function UnternehmenPage() {
     <>
       <PageHero
         kicker="Unternehmen"
-        title="Handwerk mit Ingenieursblick."
+        title="Gebäudetechnik aus einer Hand."
         intro="NECKAIR verbindet solides Fachhandwerk mit moderner Gebäudetechnik – für Menschen, die Wert auf Qualität legen."
         image="beton"
         imageAlt="Abstrakte Betonarchitektur mit klaren Linien"

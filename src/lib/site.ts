@@ -4,7 +4,7 @@ export const site = {
   name: "NECKAIR",
   claim: "Heizung, Sanitär & Trinkwasser, Klima & Kälte",
   description:
-    "NECKAIR plant, installiert und betreut Heizung, Sanitär & Trinkwasser sowie Klima & Kälte für Privat- und Geschäftskunden – Handwerk mit Ingenieursblick.",
+    "NECKAIR plant, installiert und betreut Heizung, Sanitär & Trinkwasser sowie Klima & Kälte für Privat- und Geschäftskunden in Waghäusel und Umgebung.",
   url: process.env.NEXT_PUBLIC_SITE_URL || "https://xn--hnig-0ra.com",
   owner: "Jérôme Hünig",
   street: "Musterstraße 12", // PLATZHALTER

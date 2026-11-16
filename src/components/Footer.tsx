@@ -15,7 +15,7 @@ export function Footer() {
         <div className="md:col-span-5">
           <Logo tone="light" className="h-8 w-auto" />
           <p className="measure mt-8 text-on-dark-muted">
-            Heizung, Sanitär & Trinkwasser sowie Klima & Kälte für Privat- und Geschäftskunden. Handwerk mit Ingenieursblick.
+            Heizung, Sanitär & Trinkwasser sowie Klima & Kälte aus einer Hand – für Privat- und Geschäftskunden in Waghäusel, Wiesloch, Walldorf, Sandhausen und Umgebung.
           </p>
           <address className="mt-8 space-y-1 text-sm not-italic">
             <p>{site.name}</p>

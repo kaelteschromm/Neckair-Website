@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Picture } from "@/components/Picture";
 import { BuildingStory } from "@/components/building/BuildingStory";
-import { BuildingExplorer } from "@/components/building/BuildingExplorer";
+import { HouseExperience } from "@/components/house/HouseExperience";
 import { CtaSection, ProcessSection, SectionHeading } from "@/components/sections";
 import { serviceList } from "@/content/services";
 import { references } from "@/content/references";
@@ -19,8 +19,8 @@ export default function HomePage() {
       {/* Hero + Scrolltelling: eine durchgehende Szene */}
       <BuildingStory />
 
-      {/* Das interaktive Gebäude */}
-      <BuildingExplorer />
+      {/* Das interaktive 3D-Haus */}
+      <HouseExperience />
 
       {/* Drei Leistungswelten – große, versetzte Reihen statt Kacheln */}
       <section aria-labelledby="leistungen-titel" className="bg-kalk py-24 lg:py-32">

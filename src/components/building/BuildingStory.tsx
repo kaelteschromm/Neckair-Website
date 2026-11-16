@@ -137,18 +137,18 @@ export function BuildingStory() {
         >
           <div className="max-w-3xl">
             <p className="hero-fade text-sm font-medium text-on-dark-muted" style={{ animationDelay: "0.2s" }}>
-              NECKAIR – Handwerk mit Ingenieursblick
+              NECKAIR · Waghäusel und Umgebung
             </p>
             <h1 className="mt-5 text-[clamp(1.95rem,8.4vw,4.9rem)] lg:text-[clamp(2.3rem,5.4vw,4.9rem)]">
               <span className="hero-line"><span style={{ animationDelay: "0.35s" }}>Gebäudetechnik,</span></span>
               <span className="hero-line"><span style={{ animationDelay: "0.45s" }}>die man spürt.</span></span>
             </h1>
             <p className="hero-fade mt-6 max-w-lg text-lg leading-relaxed text-on-dark-muted" style={{ animationDelay: "0.75s" }}>
-              Wir schaffen Lebensräume, in denen Technik und Komfort perfekt zusammenspielen.
+              Heizung, Sanitär & Trinkwasser, Klima & Kälte – geplant, installiert und betreut aus einer Hand. Für Ihr Zuhause und Ihr Unternehmen.
             </p>
             <div className="hero-fade mt-8 flex flex-wrap gap-3" style={{ animationDelay: "0.9s" }}>
               <Link href="/kontakt/" className="btn btn-light">Projekt anfragen</Link>
-              <a href="#erkunden" className="btn btn-outline-light">Gebäude erkunden</a>
+              <a href="#erkunden" className="btn btn-outline-light">Haus in 3D erkunden</a>
             </div>
             <ul className="hero-fade mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm [@media(max-height:780px)_and_(max-width:1023px)]:hidden" style={{ animationDelay: "1.05s" }} aria-label="Leistungen">
               {serviceList.map((s) => (

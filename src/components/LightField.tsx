@@ -8,7 +8,7 @@ import { useReduceMotion } from "@/lib/useReduceMotion";
  * Wird per `mix-blend-mode: screen` über das Hero-Bild gelegt: Schwarz = keine Wirkung.
  *
  * Modi: home (Lichtreflexe, Dunst, Partikel) · heat (aufsteigende Wärme) · water (Kaustik)
- *       · climate (Luftströmung) · vent (Luftzirkulation)
+ *       · climate (Luftströmung)
  *
  * Performance: rendert in reduzierter Auflösung, pausiert außerhalb des Sichtbereichs und
  * bei verstecktem Tab; ohne WebGL wird einfach nichts gezeichnet (das Foto bleibt).
