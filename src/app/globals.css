@@ -198,7 +198,17 @@
 .drawing-flow { animation: dash-flow 1.6s linear infinite; }
 .drawing-flow-rev { animation: dash-flow 1.6s linear infinite reverse; }
 
+/* Startseite: Bildunterschriften der Scrollgeschichte (Zustandswechsel, kurz) und Scroll-Hinweis */
+@keyframes caption-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+.story-caption { animation: caption-in 300ms var(--ease-out) both; }
+@keyframes cue { 0% { transform: translateX(-50%) scaleY(0); transform-origin: top; } 45% { transform: translateX(-50%) scaleY(1); transform-origin: top; } 55% { transform: translateX(-50%) scaleY(1); transform-origin: bottom; } 100% { transform: translateX(-50%) scaleY(0); transform-origin: bottom; } }
+.scroll-cue { animation: cue 2.4s var(--ease-in-out) 1.6s infinite; }
+
 @media (prefers-reduced-motion: reduce) {
+  /* Vor der Hydration keine überlange Scrollstrecke (danach rendert die Seite die ruhige Variante) */
+  .story-section { height: 100svh; }
+  .story-caption { animation: fade 200ms ease both; }
+  .scroll-cue { animation: none; }
   .drawing-flow, .drawing-flow-rev { animation: none; }
   .hero-line > span, .hero-fade { animation: fade 400ms ease both; }
   .hero-media img, .hero-camera { animation: none; }

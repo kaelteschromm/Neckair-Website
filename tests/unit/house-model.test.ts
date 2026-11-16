@@ -2,9 +2,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  COMPONENTS, PIPES, SYSTEM_ORDER, WALLS, measure, pathLevels, pipeComponent, pointAt, serpentine, wallBoxes, windowParts,
+  CLADDING, COMPONENTS, HERO_POSES, PIPES, SITE, SYSTEM_ORDER, WALLS, blindsFor, measure, pathLevels, pipeComponent, pointAt, serpentine, sillsFor, wallBoxes, windowParts,
   type Vec3, type WallDef,
 } from "../../src/components/house/model.ts";
+import { coverFrame } from "../../src/components/house/camera.ts";
 
 const area = (w: WallDef) => (w.to - w.from) * (w.top - w.bottom);
 const boxArea = (w: WallDef) =>
@@ -80,4 +81,42 @@ test("Schlangenverlegung wechselt die Richtung je Reihe", () => {
 test("Geschosszuordnung von Leitungen", () => {
   assert.deepEqual([...pathLevels([[0, 0.1, 0], [0, 0.2, 0]])], ["eg"]);
   assert.deepEqual([...pathLevels([[0, 0.1, 0], [0, 4, 0]])].sort(), ["eg", "og"]);
+});
+
+test("Raffstores und Fensterbänke nur an Außenwänden", () => {
+  for (const w of WALLS) {
+    const blinds = blindsFor(w), sills = sillsFor(w);
+    if (!w.exterior) {
+      assert.equal(blinds.length, 0);
+      assert.equal(sills.length, 0);
+    } else {
+      assert.equal(blinds.length, (w.openings ?? []).length);
+      // Fensterbänke nur bei Fenstern mit Brüstung, nicht bei bodentiefen Elementen
+      assert.equal(sills.length, (w.openings ?? []).filter((o) => o.bottom > w.bottom + 0.05).length);
+    }
+  }
+});
+
+test("Hero-Blickwinkel: waagerechte Kamera (keine stürzenden Linien) innerhalb des Grundstücks", () => {
+  for (const pose of [HERO_POSES.landscape, HERO_POSES.portrait]) {
+    assert.equal(pose.pos[1], pose.target[1], "Kamera blickt waagerecht");
+    assert.ok(pose.fov > 20 && pose.fov < 70);
+  }
+  assert.ok(HERO_POSES.landscape.pos[0] > SITE.plot.minX, "Kamera steht im Garten, nicht hinter der Hecke");
+});
+
+test("Bildausschnitt folgt object-fit: cover", () => {
+  const pose = HERO_POSES.landscape;
+  assert.deepEqual(coverFrame(pose, pose.aspect), { fov: pose.fov, shift: pose.shift });
+  const wide = coverFrame(pose, pose.aspect * 1.5);
+  assert.ok(wide.fov < pose.fov, "breiterer Bildschirm schneidet oben/unten ab → engerer Bildwinkel");
+  assert.ok(Math.abs(wide.shift - pose.shift * 1.5) < 1e-9);
+  assert.deepEqual(coverFrame(pose, 1), { fov: pose.fov, shift: pose.shift });
+});
+
+test("Fassadenakzente liegen an Außenflächen und in gültiger Höhe", () => {
+  for (const c of CLADDING) {
+    assert.ok(c.to > c.from && c.top > c.bottom);
+    assert.ok(Math.abs(c.face) >= 4.5, "vor der Außenwand");
+  }
 });

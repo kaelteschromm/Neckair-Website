@@ -206,3 +206,36 @@ Aufruf: `npm run check` (oder einzeln `npm run lint`, `npm test`, `npm run test:
   - fotorealistischere 3D-Ausbaustufe (Blender/GLB)
   - Major-Updates (motion 14, eslint 10, typescript 7) geplant einspielen
   - R3F gibt mit three 0.187 eine Deprecation-Warnung aus (`THREE.Clock`), harmlos, verschwindet mit einem R3F-Update
+
+## 10. Nachtrag: Hero-Motiv und Scrollgeschichte (Startseite)
+
+**Ziel laut Brief:** ein großformatiges Architekturmotiv eines modernen, realistisch erreichbaren Einfamilienhauses, wie es in Wiesloch, Walldorf oder Sandhausen stehen könnte. Beim Scrollen folgt ein eleganter Übergang ins 3D-Haus, das auf **demselben Gebäudekonzept** aufbaut.
+
+**Umsetzung:**
+- **Architektur** (`src/components/house/model.ts`, `scene-core.tsx`):
+  - zwei Geschosse, Flachdach mit schlanker Attika
+  - heller Putz (EG weiß, OG hellgrau), anthrazitfarbene Fenster mit Raffstores und Fensterbänken
+  - Lärchenholz-Lamellen und Naturstein als Akzente
+  - PV-Anlage in Ost-West-Aufständerung, Gründach über dem eingeschossigen Teil
+  - Terrasse aus großformatigen Natursteinplatten, Kiesstreifen, Hainbuchenhecken, Laubbäume
+  - Materialien sind prozedurale Texturen (`textures.ts`), es gibt keine externen Bilddateien.
+- **Hero-Bild = Rendering derselben Szene** per Pathtracing (`three-gpu-pathtracer`, MIT, nur als Entwicklungswerkzeug):
+  - Licht: später Nachmittag, warme tiefe Sonne aus Westsüdwest, beleuchtete Innenräume
+  - Kamera wie in der Architekturfotografie: waagerecht mit Shift, ohne stürzende Linien
+  - zwei Formate: Querformat 2400 × 1350, Hochformat 1200 × 2133
+- **Scrollgeschichte** (`HouseExperience.tsx`):
+  1. Hero mit „Heizung. Sanitär. Klima. Kälte.“
+  2. Das Bild wird unscharf und gibt das Echtzeit-3D **aus exakt demselben Blickwinkel** frei. `camera.ts` rechnet dafür den Bildausschnitt von `object-fit: cover` in Bildwinkel und Shift der 3D-Kamera um.
+  3. Die Kamera fährt in die Übersicht, das Dach hebt ab, die Wände werden transparent.
+  4. Kapitel Wärme, Wasser, Kälte.
+  5. Danach übernimmt der Besucher (Bedienleiste, Bauteil-Liste, Vollbild).
+- **Ruhige Variante:** Bei reduzierter Bewegung oder ohne WebGL zeigt die Seite das Hero-Bild ohne Scrolleffekte, darunter das 3D-Haus im Rahmen bzw. die Bauteil-Liste.
+
+**Hero neu rendern** (z. B. nach Änderungen am Modell):
+```bash
+RENDER_HERO=1 npx next dev -p 3005      # lokale Render-Seite /render-hero/ (wird nie veröffentlicht)
+node scripts/render-hero.mjs 900        # ca. 30 min auf einer Iris-Xe-GPU
+npm run images
+```
+
+**Ehrlicher Hinweis:** Das Hero-Bild ist ein physikalisch berechnetes Rendering, kein Foto. Es kann jederzeit durch ein echtes Architekturfoto eines NECKAIR-Projekts ersetzt werden: `assets-src/photos/haus-hero.jpg` und `haus-hero-hoch.jpg` austauschen. Der Übergang ins 3D ist dann allerdings nicht mehr deckungsgleich.

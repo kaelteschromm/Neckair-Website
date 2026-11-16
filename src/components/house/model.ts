@@ -327,4 +327,96 @@ export const COMPONENTS: HouseComponent[] = [
     text: "Angenehme Temperaturen im Wohnbereich, auch an heißen Tagen. Position und Luftführung planen wir so, dass niemand im Luftzug sitzt." },
 ];
 
-export const OVERVIEW = { pos: [15.5, 10.5, 17.5] as Vec3, target: [-0.3, 2.4, 0.2] as Vec3 };
+export const OVERVIEW = { pos: [-15.5, 10.5, 17.5] as Vec3, target: [-0.3, 2.4, 0.2] as Vec3 };
+
+/* ------------------------------------------------------------------ Architektur-Details */
+// Das Haus folgt einer regional typischen, modernen Bauweise: zwei Geschosse, Flachdach mit schlanker Attika,
+// heller Putz, anthrazitfarbene Fenster mit Raffstores, Holzlamellen und Naturstein als Akzente, PV auf dem Dach.
+
+export interface Cladding { kind: "wood" | "stone"; axis: "x" | "z"; /** Außenfläche */ face: number; dir: 1 | -1; from: number; to: number; bottom: number; top: number }
+
+/** Akzentflächen vor der Fassade (dir: Richtung der Außenseite) */
+export const CLADDING: Cladding[] = [
+  // Holzlamellen am Obergeschoss (Südseite) zwischen und neben den großen Fenstern
+  { kind: "wood", axis: "x", face: 4.5, dir: 1, from: -2.4, to: -1.4, bottom: 3.15, top: 5.95 },
+  { kind: "wood", axis: "x", face: 4.5, dir: 1, from: 2.0, to: 2.9, bottom: 3.15, top: 5.95 },
+  { kind: "wood", axis: "x", face: 4.5, dir: 1, from: 4.1, to: 4.5, bottom: 3.15, top: 5.95 },
+  // Naturstein im Erdgeschoss: Westwand neben der Glasfront und Eingangsbereich im Osten
+  { kind: "stone", axis: "z", face: -6, dir: -1, from: -4.5, to: -1.6, bottom: 0, top: 2.85 },
+  { kind: "stone", axis: "z", face: 6, dir: 1, from: 1.6, to: 2.4, bottom: 0, top: 2.85 },
+  { kind: "stone", axis: "z", face: 6, dir: 1, from: 3.6, to: 4.5, bottom: 0, top: 2.85 },
+];
+
+/** Raffstore-Kästen über den Fenstern der Außenwände; lowered = Behang teilweise heruntergefahren (0–1) */
+export function blindsFor(w: WallDef): { box: Box; slats: Box[] }[] {
+  if (!w.exterior) return [];
+  const out: { box: Box; slats: Box[] }[] = [];
+  const outward = w.axis === "x" ? Math.sign(w.at) : Math.sign(w.at);
+  const off = w.at + outward * (w.thick / 2 + 0.07);
+  for (const o of w.openings ?? []) {
+    const len = o.to - o.from, mid = (o.from + o.to) / 2;
+    const y = o.top + 0.09;
+    const box: Box = w.axis === "x" ? { pos: [mid, y, off], size: [len + 0.1, 0.18, 0.16] } : { pos: [off, y, mid], size: [0.16, 0.18, len + 0.1] };
+    // Im Obergeschoss nach Westen ist der Behang halb geschlossen – typisch für einen sonnigen Nachmittag
+    const lowered = w.level === "og" && w.axis === "z" && w.at < 0 ? 0.45 : 0;
+    const slats: Box[] = [];
+    const n = Math.floor(((o.top - o.bottom) * lowered) / 0.085);
+    for (let i = 0; i < n; i++) {
+      const sy = o.top - 0.06 - i * 0.085;
+      slats.push(w.axis === "x" ? { pos: [mid, sy, off], size: [len - 0.04, 0.012, 0.09] } : { pos: [off, sy, mid], size: [0.09, 0.012, len - 0.04] });
+    }
+    out.push({ box, slats });
+  }
+  return out;
+}
+
+/** Fensterbänke (nur bei Fenstern mit Brüstung) */
+export function sillsFor(w: WallDef): Box[] {
+  if (!w.exterior) return [];
+  const outward = Math.sign(w.at);
+  const off = w.at + outward * (w.thick / 2 + 0.05);
+  return (w.openings ?? [])
+    .filter((o) => o.bottom > w.bottom + 0.05)
+    .map((o) => {
+      const len = o.to - o.from + 0.08, mid = (o.from + o.to) / 2, y = o.bottom - 0.02;
+      return w.axis === "x" ? { pos: [mid, y, off], size: [len, 0.04, 0.12] } : { pos: [off, y, mid], size: [0.12, 0.04, len] };
+    });
+}
+
+/** PV-Module auf dem Flachdach, Ost-West-Aufständerung */
+export const PV_MODULES: { pos: Vec3; tilt: number }[] = (() => {
+  const out: { pos: Vec3; tilt: number }[] = [];
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col < 3; col++) {
+      const x = -4.6 + col * 2.25;
+      const z = -2.6 + row * 1.25;
+      out.push({ pos: [x - 0.52, H.roofTop + 0.22, z], tilt: 0.17 }, { pos: [x + 0.52, H.roofTop + 0.22, z], tilt: -0.17 });
+    }
+  }
+  return out;
+})();
+
+/** Gelände: Terrasse aus großformatigen Natursteinplatten, Kiesstreifen, Wege, Grundstücksgrenze */
+export const SITE = {
+  terrace: { pos: [-1.6, 0.04, 6.1] as Vec3, size: [9.2, 0.08, 3.2] as Vec3 },
+  gravel: [
+    { pos: [0, 0.015, -4.75], size: [12.4, 0.03, 0.5] },
+    { pos: [-6.25, 0.015, 0], size: [0.5, 0.03, 9.0] },
+    { pos: [6.25, 0.015, -2.6], size: [0.5, 0.03, 3.8] },
+  ] as Box[],
+  path: [
+    { pos: [8.6, 0.02, 3.0], size: [5.2, 0.04, 1.5] },
+    { pos: [11.4, 0.02, -0.6], size: [3.6, 0.04, 6.6] },
+  ] as Box[],
+  plot: { minX: -13, maxX: 14.5, minZ: -11, maxZ: 15 },
+};
+
+/** Kamera-Einstellungen für das Hero-Motiv (Architekturfotografie: Kamera waagerecht, Bildausschnitt per Shift) */
+export interface HeroPose { pos: Vec3; target: Vec3; fov: number; shift: number; aspect: number }
+export const HERO_POSES: { landscape: HeroPose; portrait: HeroPose } = {
+  landscape: { pos: [-11.6, 1.6, 15.8], target: [-3.6, 1.6, 1.0], fov: 38, shift: 0.3, aspect: 16 / 9 },
+  portrait: { pos: [-18.5, 1.6, 29.5], target: [-1.2, 1.6, 0], fov: 50, shift: -0.17, aspect: 9 / 16 },
+};
+
+/** Sonnenstand: später Nachmittag, tief aus Westsüdwest */
+export const SUN = { dir: [-0.78, 0.36, 0.5] as Vec3, color: "#ffd2a1" };

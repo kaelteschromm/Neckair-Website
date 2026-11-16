@@ -21,3 +21,9 @@ werden automatisch AVIF/WebP-Varianten erzeugt.
 | armatur-wasser.jpg | https://wordpress.org/photos/photo/2746ae01b3/ | WordPress Photo Directory | CC0 |
 | waschtisch-weiss.jpg | https://wordpress.org/photos/photo/15169720fb/ | WordPress Photo Directory | CC0 |
 | waschbereich-rund.jpg | https://wordpress.org/photos/photo/6206a21454/ | WordPress Photo Directory | CC0 |
+
+## Eigene Renderings
+
+| Datei | Herkunft |
+|---|---|
+| haus-hero.jpg, haus-hero-hoch.jpg | Eigenes Pathtracing-Rendering des NECKAIR-3D-Hauses (scripts/render-hero.mjs), keine Fremdrechte |

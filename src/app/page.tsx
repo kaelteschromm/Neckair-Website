@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Picture } from "@/components/Picture";
-import { BuildingStory } from "@/components/building/BuildingStory";
 import { HouseExperience } from "@/components/house/HouseExperience";
 import { CtaSection, ProcessSection, SectionHeading } from "@/components/sections";
 import { serviceList } from "@/content/services";
@@ -16,10 +15,7 @@ const AUDIENCES = [
 export default function HomePage() {
   return (
     <>
-      {/* Hero + Scrolltelling: eine durchgehende Szene */}
-      <BuildingStory />
-
-      {/* Das interaktive 3D-Haus */}
+      {/* Hero-Motiv → 3D-Haus: vom fertigen Gebäude hinein in die Technik */}
       <HouseExperience />
 
       {/* Drei Leistungswelten – große, versetzte Reihen statt Kacheln */}
