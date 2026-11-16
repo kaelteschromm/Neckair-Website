@@ -100,3 +100,21 @@ curl -sI http://xn--hnig-0ra.com/                          # 301 → https
 curl -sI https://xn--hnig-0ra.com/                         # Header vorhanden
 openssl s_client -connect xn--hnig-0ra.com:443 -tls1_1      # Handshake muss scheitern
 ```
+
+## Nachtrag 16.11.2026: Cloudflare umgesetzt und live geprüft
+
+Umgesetzt mit einem eingeschränkten API-Token (nur Transform Rules und Zoneneinstellungen dieser Zone, auf die IP des Inhabers begrenzt, danach zu löschen):
+
+| Maßnahme | Befund | Live-Ergebnis |
+|---|---|---|
+| Always Use HTTPS | S-01 | ✅ `http://` → 301 auf `https://` |
+| HSTS (30 Tage, ohne Subdomains und Preload) | S-02 | ✅ `Strict-Transport-Security: max-age=2592000` |
+| Minimum TLS 1.2 | S-03 | ✅ TLS 1.0/1.1 abgelehnt, 1.2/1.3 aktiv |
+| CSP als Header inkl. `frame-ancestors 'none'` | S-04, S-06 | ✅ |
+| X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, COOP | S-06, S-07 | ✅ |
+| E-Mail-Verschleierung aus | Datenschutz P3 | ✅ kein eingefügtes Skript mehr |
+| Network Error Logging aus | Datenschutz P2 | ✅ keine `Nel`/`Report-To`-Header mehr |
+
+Funktionstest auf der Live-Domain mit den neuen Headern: 3D-Haus und Anfrage-Assistent laufen (Versand an Formspree wird von der CSP erlaubt, im Test abgefangen), keine Konsolenfehler.
+
+**Noch offen:** S-05. SSL-Modus steht auf „Full“, nicht „Full (strict)“, weil GitHub Pages für die Domain noch kein eigenes Zertifikat hat. Außerdem Formspree-Domainbeschränkung und Spam-Filter.
